@@ -1,12 +1,12 @@
 package controllers;
 
+import model.Korisnik;
+
 import javax.ejb.EJB;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-
-import jdk.nashorn.internal.objects.annotations.Getter;
-import model.TestI;
+import javax.ws.rs.core.MediaType;
 
 @Path("/test")
 public class TestController {
@@ -15,9 +15,12 @@ public class TestController {
     TestI test;*/
 
     @GET
-    @Produces("application/json")
-    public String greeting(){
-        return "Pera";
+    @Produces(MediaType.APPLICATION_JSON)
+    // Moze i
+    //@Produces("application/json")
+    public Korisnik greeting(){
+        Korisnik k = new Korisnik("Pera");
+        return k;
     }
 
 }
