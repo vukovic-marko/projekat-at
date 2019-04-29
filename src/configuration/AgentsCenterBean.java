@@ -24,6 +24,7 @@ public class AgentsCenterBean {
 
     private AgentsCenter agentsCenter;
     private List<AgentsCenter> registeredCenters;
+    private Boolean masterNode;
 
     @PostConstruct
     public void init() {
@@ -41,22 +42,29 @@ public class AgentsCenterBean {
 
                 agentsCenter = new AgentsCenter();
                 agentsCenter.setAddress(nodeAddress);
+                registeredCenters = new ArrayList<AgentsCenter>();
 
                 if (masterAddress == null) {
                     System.out.println("master");
-                    registeredCenters = new ArrayList<AgentsCenter>();
+                    masterNode = true;
                 } else {
                     System.out.println("slave");
+                    masterNode = false;
                     System.out.println("master_address: " + masterAddress);
 
                     ResteasyClient client = new ResteasyClientBuilder().build();
-                    String url = masterAddress + "/node";
-                    System.out.println(url);
-                    ResteasyWebTarget target = client.target(url);
-                    Response response = target.request()
-                            .post(Entity.entity(agentsCenter, MediaType.APPLICATION_JSON));
+                    ResteasyWebTarget target = client.target(masterAddress + "/node");
 
-                    System.out.println(response.getStatus());
+                    ArrayList<AgentsCenter> arg = new ArrayList<>();
+                    AgentsCenter a = new AgentsCenter();
+                    a.setAddress(nodeAddress);
+                    arg.add(a);
+
+
+                    Response response = target.request()
+                            .post(Entity.entity(arg, MediaType.APPLICATION_JSON));
+                    response.close();
+                    client.close();
                 }
             } else {
                 System.err.println("Nije pronadjena config.properties datoteka!");
@@ -66,6 +74,17 @@ public class AgentsCenterBean {
             ex.printStackTrace();
         }
 
+    }
+
+    public void sendAgentsCenters(List<AgentsCenter> centers, List<AgentsCenter> receivers) {
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        for (AgentsCenter c : receivers) {
+            ResteasyWebTarget target = client.target(c.getAddress() + "/node");
+            Response response = target.request()
+                    .post(Entity.entity(centers, MediaType.APPLICATION_JSON));
+            response.close();
+        }
+        client.close();
     }
 
     public AgentsCenter getAgentsCenter() {
@@ -82,5 +101,17 @@ public class AgentsCenterBean {
 
     public void setRegisteredCenters(List<AgentsCenter> registeredCenters) {
         this.registeredCenters = registeredCenters;
+    }
+
+    public Boolean getMasterNode() {
+        return masterNode;
+    }
+
+    public void setMasterNode(Boolean masterNode) {
+        this.masterNode = masterNode;
+    }
+
+    public void addToRegisteredCenters(List<AgentsCenter> list) {
+        this.registeredCenters.addAll(list);
     }
 }
