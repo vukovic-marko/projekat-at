@@ -5,7 +5,6 @@ import model.AgentsCenter;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -20,7 +19,7 @@ import java.util.Properties;
 
 @Singleton
 @Startup
-public class AgentsCenterBean {
+public class AgentsCenterBean implements IAgentsCenterBean {
 
     private AgentsCenter agentsCenter;
     private List<AgentsCenter> registeredCenters;
@@ -55,14 +54,18 @@ public class AgentsCenterBean {
                     ResteasyClient client = new ResteasyClientBuilder().build();
                     ResteasyWebTarget target = client.target(masterAddress + "/node");
 
-                    ArrayList<AgentsCenter> arg = new ArrayList<>();
                     AgentsCenter a = new AgentsCenter();
                     a.setAddress(nodeAddress);
-                    arg.add(a);
 
+                    Response response = target.request(MediaType.APPLICATION_JSON)
+                            .post(Entity.entity(a, MediaType.APPLICATION_JSON));
 
-                    Response response = target.request()
-                            .post(Entity.entity(arg, MediaType.APPLICATION_JSON));
+                    List<AgentsCenter> retList = response.readEntity(List.class);
+
+                    if (retList != null) {
+                        registeredCenters.addAll(retList);
+                    }
+
                     response.close();
                     client.close();
                 }
@@ -76,12 +79,12 @@ public class AgentsCenterBean {
 
     }
 
-    public void sendAgentsCenters(List<AgentsCenter> centers, List<AgentsCenter> receivers) {
+    public void sendAgentsCenters(AgentsCenter center, List<AgentsCenter> receivers) {
         ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter c : receivers) {
             ResteasyWebTarget target = client.target(c.getAddress() + "/node");
-            Response response = target.request()
-                    .post(Entity.entity(centers, MediaType.APPLICATION_JSON));
+            Response response = target.request(MediaType.APPLICATION_JSON)
+                    .post(Entity.entity(center, MediaType.APPLICATION_JSON));
             response.close();
         }
         client.close();
@@ -103,7 +106,7 @@ public class AgentsCenterBean {
         this.registeredCenters = registeredCenters;
     }
 
-    public Boolean getMasterNode() {
+    public Boolean isMasterNode() {
         return masterNode;
     }
 
