@@ -16,8 +16,6 @@ public class TestController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    // Moze i
-    //@Produces("application/json")
     public Korisnik greeting(){
         Korisnik k = new Korisnik("Pera");
         return k;

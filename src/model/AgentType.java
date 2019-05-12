@@ -2,10 +2,15 @@ package model;
 
 public class AgentType {
 
-    String name;
-    String module;
+    private String name;
+    private String module;
 
     public AgentType() {
+    }
+
+    public AgentType(String name, String module) {
+        this.name = name;
+        this.module = module;
     }
 
     public String getName() {

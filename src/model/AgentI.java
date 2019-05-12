@@ -2,5 +2,5 @@ package model;
 
 public interface AgentI {
 
-    void handleMessage();
+    void handleMessage(ACLMessage message);
 }
