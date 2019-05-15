@@ -1,6 +1,8 @@
 package model;
 
-public class AgentsCenter {
+import java.io.Serializable;
+
+public class AgentsCenter implements Serializable {
 
     private String address;
     private String alias;

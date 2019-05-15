@@ -1,11 +1,13 @@
 package configuration;
 
+import agents.Ping;
 import application.App;
 import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.lang.model.type.ArrayType;
@@ -26,19 +28,13 @@ import java.util.stream.Collectors;
 @Startup
 public class AgentsCenterBean implements IAgentsCenterBean {
 
-    //private final String AGENTS_LOOKUP = "java:jboss/exported/projekat_at_war_exploded/";
-    private final String AGENTS_LOOKUP = "java:jboss/exported/";
-    private final String NAME_END = "!" + AgentI.class.getName();
-
     private AgentsCenter agentsCenter;
 
     private List<AgentsCenter> registeredCenters;
     private Boolean masterNode;
 
     private Map<AgentType, AgentsCenter> typesMap;
-    private List<Agent> runningAgents;
-
-    private Context context;
+    private List<AgentI> runningAgents;
 
     @PostConstruct
     public void init() {
@@ -54,25 +50,27 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             typesMap = new HashMap<>();
             runningAgents = new ArrayList<>();
 
-            try {
-                initContext();
-            } catch (NamingException e) {
-                e.getMessage();
-            }
-
             if (input != null) {
                 prop.load(input);
 
                 masterAddress = prop.getProperty("master_address", null);
                 nodeAddress = prop.getProperty("node_address");
                 alias = prop.getProperty("alias").trim();
-                String agentsProp = prop.getProperty("agents", null);
+                String agentsConfig = prop.getProperty("ignore_agents", "");
+                List<String> agentsConfigList = new ArrayList<>();
+
+                if (!agentsConfig.equals("")) {
+                    agentsConfigList = Arrays.asList(agentsConfig.split(","));
+                    agentsConfigList = agentsConfigList.stream().map(a -> a.trim()).collect(Collectors.toList());
+                }
 
                 agentsCenter.setAddress(nodeAddress);
                 agentsCenter.setAlias(alias);
 
-                if (agentsProp != null) {
-                    addAgentTypes(agentsProp);
+                try {
+                    addHostCenterTypes(AGENTS_LOOKUP, agentsConfigList);
+                } catch (NamingException e) {
+                    e.getMessage();
                 }
 
                 if (masterAddress == null) {
@@ -111,7 +109,12 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
-    private void addAgentTypes(String agentsProp) {
+    @PreDestroy
+    public void onDestroy() {
+
+    }
+
+    private void addAgentTypesFromConfig(String agentsProp) {
         String agents[] = agentsProp.split(",");
         for (String agent : agents) {
             String parts[] = agent.split("\\.");
@@ -135,6 +138,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
+    @Override
     public AgentsCenter getAgentsCenter() {
         return agentsCenter;
     }
@@ -143,6 +147,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         this.agentsCenter = agentsCenter;
     }
 
+    @Override
     public List<AgentsCenter> getRegisteredCenters() {
         return registeredCenters;
     }
@@ -163,10 +168,10 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         this.registeredCenters.addAll(list);
     }
 
-    private void initContext() throws NamingException {
+    private Context createContext() throws NamingException {
         Hashtable<String, Object> jndiProps = new Hashtable<>();
         jndiProps.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
-        context = new InitialContext(jndiProps);
+        return new InitialContext(jndiProps);
     }
 
     @Override
@@ -175,10 +180,53 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         return new ArrayList(typesMap.keySet());
     }
 
+    private void addHostCenterTypes(String path, List<String> ignoredAgents) throws NamingException {
+
+        Context context = createContext();
+
+        NamingEnumeration<NameClassPair> list = context.list(path);
+
+        while (list.hasMore()) {
+
+            NameClassPair pair = list.next();
+
+            String name = pair.getName();
+            String className = pair.getClassName();
+            className = className.substring(className.lastIndexOf('.') + 1);
+
+            if (className.equals(CONTEXT_CLASS_NAME)) {
+                addHostCenterTypes(path + name + "/", ignoredAgents);
+            } else {
+                if (name != null && name.endsWith(AGENT_NAME_END)) {
+
+                    name = name.substring(0, name.indexOf('!'));
+
+                    // Da se ne bi uzeli svi agenti koji postoje, radi lakseg testiranja
+                    if (!ignoredAgents.contains(name)) {
+                        AgentType type = new AgentType();
+                        String module = path.substring(AGENTS_LOOKUP.length());
+                        module = module.replace('/', '.');
+                        module = module.substring(0, module.lastIndexOf('.'));
+                        type.setModule(module);
+                        type.setName(name);
+
+                        typesMap.put(type, agentsCenter);
+                    }
+
+
+                }
+            }
+
+        }
+
+    }
+
     @Override
     public List<AgentType> getAvaliableAgentTypes() throws NamingException {
 
         List<AgentType> result = new ArrayList<>();
+
+        Context context = createContext();
 
         NamingEnumeration<NameClassPair> moduleList = context.list(AGENTS_LOOKUP);
 
@@ -190,7 +238,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
             while (agentList.hasMore()) {
                 String name = agentList.next().getName();
-                if (name != null && name.endsWith(NAME_END)) {
+
+                if (name != null && name.endsWith(AGENT_NAME_END)) {
                     AgentType type = new AgentType();
                     type.setModule(module);
                     type.setName(name.substring(0, name.indexOf('!')));
@@ -201,6 +250,65 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         }
 
         return  result;
+
+    }
+
+    @Override
+    public List<AgentI> getRunningAgents() {
+        return runningAgents;
+    }
+
+    @Override
+    public Map<AgentType, AgentsCenter> getTypesMap() {
+        return typesMap;
+    }
+
+    @Override
+    public List<String> traverse() {
+
+        List<String> ret = new ArrayList<String>();
+
+        Context ctx;
+        AgentI ag;
+        try {
+            ctx = new InitialContext();
+
+            Object o = ctx.lookup("java:app/web/Ping");
+
+            ag = (AgentI) o;
+
+            ag.handleMessage(new ACLMessage());
+
+            if (ag instanceof Ping) {
+                ag.handleMessage(new ACLMessage());
+            }
+
+            ag = (AgentI) ctx.lookup("java:app/web/Pong");
+
+            ag.handleMessage(new ACLMessage());
+
+        } catch (NamingException e) {
+            return null;
+        }
+
+        return ret;
+
+    }
+
+    public AgentI runAgent(AgentType type, String name) throws NamingException {
+
+        Context ctx = new InitialContext();
+
+        String module = type.getModule().replaceAll("\\.", "/");
+
+        String lookupStr = AGENTS_LOOKUP + module + "/"
+                + type.getName() + AGENT_NAME_END;
+
+        AgentI agent = (AgentI) ctx.lookup(lookupStr);
+
+        runningAgents.add(agent);
+
+        return agent;
 
     }
 }

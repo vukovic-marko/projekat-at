@@ -1,8 +1,9 @@
 package model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class ACLMessage {
+public class ACLMessage implements Serializable {
 
     public enum Performative {
         ACCEPT_PROPOSAL,

@@ -1,13 +1,22 @@
 package configuration;
 
+import model.AgentI;
 import model.AgentType;
 import model.AgentsCenter;
+import model.Agent;
 import javax.ejb.Local;
 import javax.naming.NamingException;
 import java.util.List;
+import java.util.Map;
 
 @Local
 public interface IAgentsCenterBean {
+
+    //private final String AGENTS_LOOKUP = "java:jboss/exported/projekat_at_war_exploded/";
+    final String AGENTS_LOOKUP = "java:jboss/exported/";
+    final String AGENT_NAME_END = "!" + AgentI.class.getName();
+    final String CONTEXT_CLASS_NAME = "Context";
+
     void sendAgentsCenters(AgentsCenter centers, List<AgentsCenter> receivers);
     //AgentsCenter getAgentsCenter();
     List<AgentsCenter> getRegisteredCenters();
@@ -16,4 +25,11 @@ public interface IAgentsCenterBean {
     List<AgentType> getTypes();
 
     List<AgentType> getAvaliableAgentTypes() throws NamingException;
+    List<AgentI> getRunningAgents();
+    Map<AgentType, AgentsCenter> getTypesMap();
+
+    List<String> traverse();
+    AgentsCenter getAgentsCenter();
+    AgentI runAgent(AgentType type, String name) throws NamingException;
+
 }

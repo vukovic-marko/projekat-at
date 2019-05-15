@@ -1,6 +1,8 @@
 package model;
 
-public interface AgentI {
+import java.io.Serializable;
+
+public interface AgentI extends Serializable {
 
     void handleMessage(ACLMessage message);
 }

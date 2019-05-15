@@ -1,6 +1,8 @@
 package model;
 
-public class AgentType {
+import java.io.Serializable;
+
+public class AgentType implements Serializable {
 
     private String name;
     private String module;
@@ -11,6 +13,24 @@ public class AgentType {
     public AgentType(String name, String module) {
         this.name = name;
         this.module = module;
+    }
+
+    public AgentType(String fullName) {
+        int lastDot = fullName.lastIndexOf('.');
+        this.module = fullName.substring(0, lastDot);
+
+        if (lastDot != -1) {
+            this.name = fullName.substring(lastDot + 1);
+        } else {
+            this.name = fullName;
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        AgentType at = (AgentType) obj;
+        return (at.getName().equals(this.name) &&
+                at.getModule().equals(this.module));
     }
 
     public String getName() {
