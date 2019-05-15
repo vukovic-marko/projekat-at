@@ -5,13 +5,16 @@ import javax.ejb.Stateful;
 @Stateful
 public abstract class Agent implements AgentI {
 
-    public AID id;
+    public AID aid;
 
-    public AID getId() {
-        return id;
+    @Override
+    public AID getAid() {
+        return aid;
     }
 
-    public void setId(AID id) {
-        this.id = id;
+    @Override
+    public void init(AID aid) {
+        this.aid = aid;
     }
+
 }

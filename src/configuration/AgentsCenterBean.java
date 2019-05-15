@@ -34,7 +34,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     private Boolean masterNode;
 
     private Map<AgentType, AgentsCenter> typesMap;
-    private List<AgentI> runningAgents;
+    private List<AID> runningAgents;
+    private Map<AID, AgentI> hostRunningAgents;
 
     @PostConstruct
     public void init() {
@@ -49,6 +50,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             registeredCenters = new ArrayList<AgentsCenter>();
             typesMap = new HashMap<>();
             runningAgents = new ArrayList<>();
+            hostRunningAgents = new HashMap<>();
 
             if (input != null) {
                 prop.load(input);
@@ -254,7 +256,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
-    public List<AgentI> getRunningAgents() {
+    public List<AID> getRunningAgents() {
         return runningAgents;
     }
 
@@ -306,9 +308,20 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
         AgentI agent = (AgentI) ctx.lookup(lookupStr);
 
-        runningAgents.add(agent);
+        AID aid = new AID(name, agentsCenter, type);
+
+        agent.init(aid);
+
+        runningAgents.add(aid);
+        hostRunningAgents.put(aid, agent);
 
         return agent;
+
+    }
+
+    public void addRunningAgents(List<AID> running) {
+
+        runningAgents.addAll(running);
 
     }
 }

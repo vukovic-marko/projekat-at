@@ -1,5 +1,6 @@
 package restclient;
 
+import model.AID;
 import model.AgentI;
 import model.AgentType;
 import model.AgentsCenter;
@@ -11,6 +12,9 @@ import javax.ejb.Stateless;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Stateless
@@ -34,13 +38,13 @@ public class RestClient implements IRestClient {
     }
 
     @Override
-    public void notifyAgentStarted(AgentI agent, List<AgentsCenter> toNotify) {
+    public void notifyAgentStarted(AID aid, List<AgentsCenter> toNotify) {
         for (AgentsCenter ac : toNotify) {
             ResteasyClient client = new ResteasyClientBuilder().build();
-            ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/run");
+            ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
 
             Response response = target.request(MediaType.APPLICATION_JSON).
-                    put(Entity.entity(agent, MediaType.APPLICATION_JSON));
+                    post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
 
         }
     }

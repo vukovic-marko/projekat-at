@@ -1,9 +1,7 @@
 package configuration;
 
-import model.AgentI;
-import model.AgentType;
-import model.AgentsCenter;
-import model.Agent;
+import model.*;
+
 import javax.ejb.Local;
 import javax.naming.NamingException;
 import java.util.List;
@@ -25,11 +23,12 @@ public interface IAgentsCenterBean {
     List<AgentType> getTypes();
 
     List<AgentType> getAvaliableAgentTypes() throws NamingException;
-    List<AgentI> getRunningAgents();
+    List<AID> getRunningAgents();
     Map<AgentType, AgentsCenter> getTypesMap();
 
     List<String> traverse();
     AgentsCenter getAgentsCenter();
     AgentI runAgent(AgentType type, String name) throws NamingException;
 
+    void addRunningAgents(List<AID> running);
 }

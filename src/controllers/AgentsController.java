@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import configuration.AgentsCenterBean;
 import configuration.IAgentsCenterBean;
 import messaging.IMessenger;
-import model.Agent;
-import model.AgentI;
-import model.AgentType;
-import model.AgentsCenter;
+import model.*;
 import restclient.IRestClient;
 
 import javax.ejb.EJB;
@@ -52,9 +49,19 @@ public class AgentsController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRunningAgents() {
 
-        List<AgentI> agents = center.getRunningAgents();
+        List<AID> agents = center.getRunningAgents();
 
         return Response.ok(agents).build();
+    }
+
+    @POST
+    @Path("/running")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response agentsRunning(List<AID> running) {
+
+        center.addRunningAgents(running);
+
+        return Response.ok().build();
     }
 
     @PUT
@@ -87,7 +94,7 @@ public class AgentsController {
                 // Nadji centre koje nisu host agenta
                 List<AgentsCenter> toNotify = center.getRegisteredCenters();
 
-                restClient.notifyAgentStarted(agent, toNotify);
+                restClient.notifyAgentStarted(agent.getAid(), toNotify);
 
             } catch (NamingException e) {
                 e.getMessage();

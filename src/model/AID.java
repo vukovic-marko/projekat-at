@@ -11,6 +11,13 @@ public class AID implements Serializable {
     public AID() {
     }
 
+    public AID(String name, AgentsCenter host, AgentType type) {
+        this.name = name;
+        this.host = host;
+        this.type = type;
+    }
+
+
     public String getName() {
         return name;
     }

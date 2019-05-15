@@ -1,5 +1,6 @@
 package restclient;
 
+import model.AID;
 import model.AgentType;
 import model.AgentsCenter;
 
@@ -13,5 +14,5 @@ public interface IRestClient {
 
     void runRemoteAgent(AgentsCenter center, String type, String name);
 
-    void notifyAgentStarted(AgentI agent, List<AgentsCenter> toNotify);
+    void notifyAgentStarted(AID aid, List<AgentsCenter> toNotify);
 }
