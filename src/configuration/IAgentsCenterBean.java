@@ -24,6 +24,7 @@ public interface IAgentsCenterBean {
 
     List<AgentType> getAvaliableAgentTypes() throws NamingException;
     List<AID> getRunningAgents();
+    Map<AID, AgentI> getHostRunningAgents();
     Map<AgentType, AgentsCenter> getTypesMap();
 
     List<String> traverse();
@@ -31,4 +32,7 @@ public interface IAgentsCenterBean {
     AgentI runAgent(AgentType type, String name) throws NamingException;
 
     void addRunningAgents(List<AID> running);
+
+    void stopAgent(String aidName, String typeName);
+    void stopHostAgent(AID aid);
 }

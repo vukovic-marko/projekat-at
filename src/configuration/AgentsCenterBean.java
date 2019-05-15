@@ -324,4 +324,33 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         runningAgents.addAll(running);
 
     }
+
+    @Override
+    public Map<AID, AgentI> getHostRunningAgents() {
+        return hostRunningAgents;
+    }
+
+    @Override
+    public void stopAgent(String aidName, String typeName) {
+
+        for (AID aid : runningAgents) {
+
+            if (aid.getName().equals(aidName) &&
+                    aid.getType().getName().equals(typeName)) {
+
+                runningAgents.remove(aid);
+
+            }
+
+        }
+
+    }
+
+    @Override
+    public void stopHostAgent(AID aid) {
+
+        runningAgents.remove(aid);
+        hostRunningAgents.remove(aid);
+
+    }
 }

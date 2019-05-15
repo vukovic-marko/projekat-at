@@ -107,10 +107,35 @@ public class AgentsController {
         return Response.ok(agent).build();
     }
 
+    // TODO : Prodiskutvati sa asistentom
+    @DELETE
+    // @Path("/running/{aid}")
+    // public Response stopAgent(@PathParam("aid") String aid) {
+    @Path("/running")
+    public Response stopHostAgent(AID aid) {
+
+        // Da li se zastavlja agent na hostu
+        if (aid.getHost().equals(center.getAgentsCenter())) {
+            center.stopHostAgent(aid);
+            restClient.notifyAgentStopped(aid, center.getRegisteredCenters());
+        } else {
+            restClient.stopAgent(aid);
+        }
+
+
+        return Response.ok().build();
+    }
+
     @DELETE
     @Path("/running/{aid}")
     public Response stopAgent(@PathParam("aid") String aid) {
 
+        String parts[] = aid.split("\\.");
+
+        String aidName = parts[0];
+        String typeName = parts[1];
+
+        center.stopAgent(aidName, typeName);
 
         return Response.ok().build();
     }

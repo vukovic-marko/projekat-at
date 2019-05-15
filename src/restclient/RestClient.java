@@ -48,5 +48,33 @@ public class RestClient implements IRestClient {
 
         }
     }
+
+    @Override
+    public void stopAgent(AID aid) {
+
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyWebTarget target = client.target(aid.getHost().getAddress() +
+                "/agents/running/" + aid.getName() + "." + aid.getType().getName());
+
+        // Delete poziz ne prihvata payload
+        // U okviru putanje se salju naziv tipa
+        // i naziv agenta razdvojeni tackom
+        Response response = target.request(MediaType.APPLICATION_JSON).delete();
+
+
+    }
+
+    @Override
+    public void notifyAgentStopped(AID aid, List<AgentsCenter> toNotify) {
+        for (AgentsCenter ac : toNotify) {
+            ResteasyClient client = new ResteasyClientBuilder().build();
+            ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
+
+            Response response = target.request(MediaType.APPLICATION_JSON).
+                    post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
+
+        }
+    }
+
 }
 
