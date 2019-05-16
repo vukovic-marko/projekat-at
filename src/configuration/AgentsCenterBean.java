@@ -6,16 +6,12 @@ import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.lang.model.type.ArrayType;
-import javax.naming.NameClassPair;
-import javax.naming.NamingEnumeration;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.naming.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -136,10 +132,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         client.close();
     }
 
-    public void sendMessage(ACLMessage message) {
-
-    }
-
     @Override
     public AgentsCenter getAgentsCenter() {
         return agentsCenter;
@@ -214,13 +206,9 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                         typesMap.put(type, agentsCenter);
                     }
-
-
                 }
             }
-
         }
-
     }
 
     @Override
@@ -268,7 +256,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     @Override
     public List<String> traverse() {
 
-        List<String> ret = new ArrayList<String>();
+        List<String> ret;
+        ret = new ArrayList<>();
 
         Context ctx;
         AgentI ag;
@@ -351,6 +340,15 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
         runningAgents.remove(aid);
         hostRunningAgents.remove(aid);
+
+    }
+
+    @Override
+    public void deliverMessageToAgent(ACLMessage message, AID aid) {
+
+        AgentI agent = hostRunningAgents.get(aid);
+
+        agent.handleMessage(message);
 
     }
 }

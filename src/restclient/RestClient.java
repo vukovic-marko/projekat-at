@@ -1,14 +1,12 @@
 package restclient;
 
-import model.AID;
-import model.AgentI;
-import model.AgentType;
-import model.AgentsCenter;
+import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import javax.ejb.Stateless;
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,6 +64,7 @@ public class RestClient implements IRestClient {
 
     @Override
     public void notifyAgentStopped(AID aid, List<AgentsCenter> toNotify) {
+        // TODO Proveriti da li se moze client izbaciti van petlje
         for (AgentsCenter ac : toNotify) {
             ResteasyClient client = new ResteasyClientBuilder().build();
             ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
@@ -74,6 +73,19 @@ public class RestClient implements IRestClient {
                     post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
 
         }
+    }
+
+    @Override
+    public void sendMessageToCenter(ACLMessage message, AgentsCenter center) {
+
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyWebTarget target = client.target(center.getAddress() + "/messages");
+
+        Response response = target.request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(message, MediaType.APPLICATION_JSON));
+
+
+
     }
 
 }

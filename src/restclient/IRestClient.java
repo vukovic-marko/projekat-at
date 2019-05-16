@@ -1,11 +1,8 @@
 package restclient;
 
-import model.AID;
-import model.AgentType;
-import model.AgentsCenter;
+import model.*;
 
 import javax.ejb.Local;
-import model.AgentI;
 
 import java.util.List;
 
@@ -19,4 +16,6 @@ public interface IRestClient {
     void stopAgent(AID aid);
 
     void notifyAgentStopped(AID aid, List<AgentsCenter> toNotify);
+
+    void sendMessageToCenter(ACLMessage message, AgentsCenter center);
 }

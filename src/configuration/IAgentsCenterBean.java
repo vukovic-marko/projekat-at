@@ -35,4 +35,6 @@ public interface IAgentsCenterBean {
 
     void stopAgent(String aidName, String typeName);
     void stopHostAgent(AID aid);
+
+    void deliverMessageToAgent(ACLMessage receivedMessage, AID aid);
 }

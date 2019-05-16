@@ -1,24 +1,30 @@
 package controllers;
 
-import configuration.AgentsCenterBean;
+import configuration.IAgentsCenterBean;
+import messaging.IMessenger;
 import model.ACLMessage;
+import model.AID;
 import model.AgentsCenter;
+import restclient.IRestClient;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Path("/messages")
 public class MessagesController {
 
     @EJB
-    AgentsCenterBean center;
+    IAgentsCenterBean center;
+
+    @EJB
+    IRestClient restClient;
+
+    @EJB
+    IMessenger messenger;
 
     /**
      *
@@ -30,7 +36,17 @@ public class MessagesController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response sendMessage(ACLMessage message) {
 
-        center.sendMessage(message);
+        AID[] ids = message.getReceivers();
+
+        for (int i = 0; i < ids.length; i++) {
+            AID aid = ids[i];
+            AgentsCenter host = aid.getHost();
+            if (host.equals(center.getAgentsCenter())) {
+                messenger.sendMessageToAgent(message, aid, i);
+            } else {
+                restClient.sendMessageToCenter(message, host);
+            }
+        }
 
         return Response.ok().build();
     }

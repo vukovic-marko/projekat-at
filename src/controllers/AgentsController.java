@@ -1,24 +1,17 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import configuration.AgentsCenterBean;
 import configuration.IAgentsCenterBean;
-import messaging.IMessenger;
-import model.*;
+import model.AID;
+import model.AgentI;
+import model.AgentType;
+import model.AgentsCenter;
 import restclient.IRestClient;
 
 import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.naming.NamingException;
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.rmi.server.ExportException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +20,6 @@ public class AgentsController {
 
     @EJB
     IAgentsCenterBean center;
-
-    @EJB
-    IMessenger messenger;
 
     @EJB
     IRestClient restClient;
@@ -130,7 +120,7 @@ public class AgentsController {
     @Path("/running/{aid}")
     public Response stopAgent(@PathParam("aid") String aid) {
 
-        String parts[] = aid.split("\\.");
+        String[] parts = aid.split("\\.");
 
         String aidName = parts[0];
         String typeName = parts[1];

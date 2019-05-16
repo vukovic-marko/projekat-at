@@ -1,52 +1,63 @@
 package messaging;
 
-import model.Agent;
-import model.AgentType;
-import model.AgentsCenter;
+import model.*;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Stateful;
+import javax.annotation.PreDestroy;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.xml.soap.SOAPConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
+import java.util.UUID;
 
 @Stateless
 public class Messenger implements IMessenger {
 
-    @Override
-    public boolean runAgent(AgentsCenter center, AgentType type, String name) {
+    @EJB
+    private MessagingFactory factory;
 
-        /*Context context = new InitialContext();
-        ConnectionFactory cf = (ConnectionFactory) context.lookup("jms/RemoteConnectionFactory");
-        final Topic topic = (Topic) context.lookup("jms/topic/run");
-        context.close();
+    private Session session;
 
-        Connection con = null;
-        con = cf.createConnection("guest", "guestguest");
-        final Session session = con.createSession(false, Session.AUTO_ACKNOWLEDGE);
+    private MessageProducer producer;
 
-        con.start();
+    @PostConstruct
+    public void init() {
+        try {
+            session = factory.getSession();
+            producer = factory.getProducer(session);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
 
-        MessageConsumer consumer = session.createConsumer(topic);
-        consumer.setMessageListener(this);
-        TextMessage msg = session.createTextMessage();
-        msg.setText("Hello!");
-
-        MessageProducer producer = session.createProducer(topic);
-        producer.send(msg);
-        producer.close();
-        consumer.close();
-        con.stop();*/
-
-        return  true;
+    @PreDestroy
+    public void preDestroy() {
+        try {
+            session.close();
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public boolean sendMessage(AgentsCenter center, Agent agent) {
-        return false;
-    }
+    public void sendMessageToAgent(ACLMessage message, AID aid, int index) {
 
+        ObjectMessage jmsMsg = null;
+
+        try {
+            jmsMsg = session.createObjectMessage(message);
+
+            // Setup
+            jmsMsg.setStringProperty("GroupID", aid.getName() + "@" + aid.getHost().getAlias());
+            jmsMsg.setIntProperty("Index", index);
+            jmsMsg.setStringProperty("_HQ_DUPL_ID", UUID.randomUUID().toString());
+
+            // Slanje
+            producer.send(jmsMsg);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
 }
