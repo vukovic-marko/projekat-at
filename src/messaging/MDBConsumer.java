@@ -15,7 +15,7 @@ import javax.jms.ObjectMessage;
 @MessageDriven(
         activationConfig = {
                 @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/red")
+                @ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue")
         }
 )
 public class MDBConsumer implements MessageListener {
