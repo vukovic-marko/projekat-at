@@ -1,18 +1,31 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <AgentTypesSlot id="agentTypesSlot" />
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+
+import AgentTypesSlot from '@/components/AgentTypesSlot.vue'
 
 export default {
   name: 'home',
   components: {
-    HelloWorld
+    AgentTypesSlot
   }
 }
 </script>
+
+
+<style scoped>
+
+#agentTypesSlot {
+  position: fixed;
+  left: 0;
+  height: 45%;
+  width: 25%;
+  transform: translate(8%, 5%);
+  border: 3px solid rgb(33, 82, 173);
+}
+
+</style>
