@@ -354,17 +354,39 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
-    public void stopHostAgent(AID aid) {
+    public boolean stopHostAgent(AID aid) {
 
-        runningAgents.remove(aid);
-        hostRunningAgents.remove(aid);
+        if (!runningAgents.remove(aid)) {
+            return false;
+        }
 
+        List<AID> ids = null;
+        for (AID i : hostRunningAgents.keySet()) {
+            if (i.equals(aid)) {
+                hostRunningAgents.remove(i);
+                // Posto je aid kljuc moguce ce biti obrisati samo jedan element
+                break;
+            }
+        }
+
+        return true;
     }
 
     @Override
     public void deliverMessageToAgent(ACLMessage message, AID aid) {
 
-        AgentI agent = hostRunningAgents.get(aid);
+        AgentI agent = null;
+
+        for (AID i : hostRunningAgents.keySet()) {
+            if (aid.equals(i)) {
+                agent = hostRunningAgents.get(i);
+                break;
+            }
+        }
+
+        if (agent == null) {
+            return;
+        }
 
         agent.handleMessage(message);
 

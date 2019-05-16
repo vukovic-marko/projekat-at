@@ -155,7 +155,11 @@ public class AgentsController {
 
         // Da li se zastavlja agent na hostu
         if (aid.getHost().equals(center.getAgentsCenter())) {
-            center.stopHostAgent(aid);
+            boolean deleted = center.stopHostAgent(aid);
+            if (!deleted) {
+                // Ne postoji trazeni agent
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
             restClient.notifyAgentStopped(aid, center.getRegisteredCenters());
         } else {
             restClient.stopAgent(aid);

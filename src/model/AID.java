@@ -41,4 +41,23 @@ public class AID implements Serializable {
     public void setType(AgentType type) {
         this.type = type;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof AID) {
+            AID aid = (AID) obj;
+            if (this.name.equals(aid.getName()) && this.host.equals(aid.getHost())
+                    && this.type.equals(aid.getType())) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 }

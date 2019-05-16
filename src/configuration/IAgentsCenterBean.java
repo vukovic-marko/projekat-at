@@ -34,7 +34,7 @@ public interface IAgentsCenterBean {
     void addRunningAgents(List<AID> running);
 
     void stopAgent(String aidName, String typeName);
-    void stopHostAgent(AID aid);
+    boolean stopHostAgent(AID aid);
 
     void deliverMessageToAgent(ACLMessage receivedMessage, AID aid);
 

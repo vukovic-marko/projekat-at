@@ -38,6 +38,10 @@ public class MessagesController {
 
         AID[] ids = message.getReceivers();
 
+        if (ids == null || ids.length==0) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         for (int i = 0; i < ids.length; i++) {
             AID aid = ids[i];
             AgentsCenter host = aid.getHost();

@@ -1,17 +1,17 @@
 package restclient;
 
-import model.*;
+import model.ACLMessage;
+import model.AID;
+import model.AgentType;
+import model.AgentsCenter;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import javax.ejb.Stateless;
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,14 +37,16 @@ public class RestClient implements IRestClient {
 
     @Override
     public void notifyAgentStarted(AID aid, List<AgentsCenter> toNotify) {
+
+        ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter ac : toNotify) {
-            ResteasyClient client = new ResteasyClientBuilder().build();
             ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
 
             Response response = target.request(MediaType.APPLICATION_JSON).
                     post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
-
+            response.close();
         }
+        client.close();
     }
 
     @Override
@@ -59,20 +61,22 @@ public class RestClient implements IRestClient {
         // i naziv agenta razdvojeni tackom
         Response response = target.request(MediaType.APPLICATION_JSON).delete();
 
-
+        response.close();
+        client.close();
     }
 
     @Override
     public void notifyAgentStopped(AID aid, List<AgentsCenter> toNotify) {
-        // TODO Proveriti da li se moze client izbaciti van petlje
+
+        ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter ac : toNotify) {
-            ResteasyClient client = new ResteasyClientBuilder().build();
-            ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
+            ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/stopped");
 
             Response response = target.request(MediaType.APPLICATION_JSON).
                     post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
-
+            response.close();
         }
+        client.close();
     }
 
     @Override
@@ -83,8 +87,8 @@ public class RestClient implements IRestClient {
 
         Response response = target.request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(message, MediaType.APPLICATION_JSON));
-
-
+        response.close();
+        client.close();
 
     }
 

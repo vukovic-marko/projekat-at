@@ -26,13 +26,6 @@ public class AgentType implements Serializable {
         }
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        AgentType at = (AgentType) obj;
-        return (at.getName().equals(this.name) &&
-                at.getModule().equals(this.module));
-    }
-
     public String getName() {
         return name;
     }
@@ -47,5 +40,23 @@ public class AgentType implements Serializable {
 
     public void setModule(String module) {
         this.module = module;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof AgentType) {
+            AgentType type = (AgentType)obj;
+            if (this.name.equals(type.getName()) && this.module.equals(type.getModule())) {
+                return true;
+            }
+        }
+
+        return false;
+
     }
 }

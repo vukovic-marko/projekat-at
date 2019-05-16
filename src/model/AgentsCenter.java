@@ -31,4 +31,22 @@ public class AgentsCenter implements Serializable {
     public String getAlias() {
         return alias;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof AgentsCenter) {
+            AgentsCenter center = (AgentsCenter)obj;
+            if (this.address.equals(center.getAddress()) && this.alias.equals(center.getAlias())) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 }
