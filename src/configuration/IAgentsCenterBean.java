@@ -35,4 +35,7 @@ public interface IAgentsCenterBean {
 
     void stopAgent(String aidName, String typeName);
     void stopHostAgent(AID aid);
+
+    Map<String, List<AgentType>> getClusterTypesMap();
+    void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap);
 }
