@@ -161,7 +161,6 @@ public class AgentsController {
             restClient.stopAgent(aid);
         }
 
-
         return Response.ok().build();
     }
 

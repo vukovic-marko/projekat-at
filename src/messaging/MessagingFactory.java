@@ -19,8 +19,8 @@ public class MessagingFactory {
     @Resource(lookup = "java:jboss/exported/jms/connFactory")
     private ConnectionFactory connFactory;
 
-    @Resource(lookup = "java:jboss/exported/jms/queue")
-    private Queue queue;
+    @Resource(lookup = "java:jboss/exported/jms/queue/red")
+    private Queue red;
 
     @PostConstruct
     public void init() {
@@ -66,7 +66,7 @@ public class MessagingFactory {
 
     public MessageProducer getProducer(Session session) throws JMSException {
         try {
-            return session.createProducer(queue);
+            return session.createProducer(red);
         } catch (JMSException e) {
             throw new JMSException(e.getMessage());
         }
