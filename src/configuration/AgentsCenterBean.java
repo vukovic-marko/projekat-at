@@ -33,6 +33,9 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     private List<AID> runningAgents;
     private Map<AID, AgentI> hostRunningAgents;
 
+    private Map<String, List<AgentType>> clusterTypesMap;
+    private String mastersAddress; // za ne-master cvorove
+
     @PostConstruct
     public void init() {
         try (InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties")) {
@@ -47,6 +50,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             typesMap = new HashMap<>();
             runningAgents = new ArrayList<>();
             hostRunningAgents = new HashMap<>();
+            clusterTypesMap = new HashMap<>();
 
             if (input != null) {
                 prop.load(input);
@@ -72,18 +76,19 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                 }
 
                 if (masterAddress == null) {
-                    System.out.println("master");
                     masterNode = true;
+                    clusterTypesMap.put(alias + "@" + nodeAddress, getTypes());
                 } else {
-                    System.out.println("slave");
                     masterNode = false;
-                    System.out.println("master_address: " + masterAddress);
+
+                    mastersAddress = masterAddress;
 
                     ResteasyClient client = new ResteasyClientBuilder().build();
                     ResteasyWebTarget target = client.target(masterAddress + "/node");
 
                     AgentsCenter a = new AgentsCenter();
                     a.setAddress(nodeAddress);
+                    a.setAlias(alias);
 
                     Response response = target.request(MediaType.APPLICATION_JSON)
                             .post(Entity.entity(a, MediaType.APPLICATION_JSON));
@@ -95,6 +100,19 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     }
 
                     response.close();
+
+                    target = client.target(masterAddress + "/agents/classes");
+
+                    Map<String, List<AgentType>> temp = new HashMap<>();
+                    temp.put(alias + "@" + nodeAddress, getTypes());
+
+                    response = target.request(MediaType.APPLICATION_JSON)
+                            .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
+
+                    clusterTypesMap = response.readEntity(Map.class);
+
+                    response.close();
+
                     client.close();
                 }
             } else {
@@ -351,4 +369,44 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         agent.handleMessage(message);
 
     }
+
+    public Map<String, List<AgentType>> getClusterTypesMap() {
+        return clusterTypesMap;
+    }
+
+    @Override
+    public void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap) {
+        this.clusterTypesMap = clusterTypesMap;
+    }
+
+//    /**
+//     * Funkcija koja pronalazi agenta zapisanog u notaciji alias@address, i vraca ga kao objekat tipa AgentsCenter.
+//     *
+//     * @param str
+//     * @return
+//     */
+//    public AgentsCenter getAgentsCenterFromString(String str) {
+//        AgentsCenter temp = new AgentsCenter();
+//
+//        String[] parts = str.split("@");
+//        if (parts.length == 1)
+//            if (mastersAddress.equals(parts[0])) {
+//                temp.setAddress(mastersAddress);
+//                return temp;
+//            }
+//
+//        if (agentsCenter.getAlias().equals(parts[0]) && agentsCenter.getAddress().equals(parts[1])) {
+//            temp = agentsCenter;
+//            return temp;
+//        }
+//
+//        for (AgentsCenter center : registeredCenters) {
+//            if (center.getAlias().equals(parts[0]) && center.getAddress().equals(parts[1])) {
+//                temp = center;
+//                return temp;
+//            }
+//        }
+//
+//        return null;
+//    }
 }

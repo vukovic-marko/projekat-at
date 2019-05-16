@@ -5,11 +5,15 @@ import model.AID;
 import model.AgentI;
 import model.AgentType;
 import model.AgentsCenter;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import restclient.IRestClient;
 
 import javax.ejb.EJB;
 import javax.naming.NamingException;
 import javax.ws.rs.*;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -32,6 +36,51 @@ public class AgentsController {
         List<AgentType> types = center.getTypes();
 
         return Response.ok(types).build();
+    }
+
+    @POST
+    @Path("/classes")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setAgentTypes(Map<String, List<AgentType>> types) {
+        if (center.isMasterNode()) {
+            String sender = "";
+            types.forEach((k,v) -> center.getClusterTypesMap().put(k,v));
+
+            for (String key : types.keySet()) {
+                sender = key;
+            }
+
+            String[] parts = sender.split("@");
+
+            Map<String, List<AgentType>> temp = center.getClusterTypesMap();
+
+            ResteasyClient client = new ResteasyClientBuilder().build();
+            ResteasyWebTarget target;
+            Response response;
+            for (AgentsCenter c : center.getRegisteredCenters()) {
+                if (c.getAddress().equals(parts[1]) && c.getAlias().equals(parts[0]))
+                    continue;
+                target = client.target(c.getAddress() + "/agents/classes");
+                response = target.request(MediaType.APPLICATION_JSON)
+                        .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
+                response.close();
+            }
+            client.close();
+
+            return Response.ok(temp).build();
+        } else {
+            center.setClusterTypesMap(types);
+
+            return Response.ok(null).build();
+        }
+    }
+
+    @GET
+    @Path("/classes/cluster")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getClusterTypes() {
+        return Response.ok(center.getClusterTypesMap()).build();
     }
 
     @GET

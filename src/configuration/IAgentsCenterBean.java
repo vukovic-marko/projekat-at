@@ -37,4 +37,7 @@ public interface IAgentsCenterBean {
     void stopHostAgent(AID aid);
 
     void deliverMessageToAgent(ACLMessage receivedMessage, AID aid);
+
+    Map<String, List<AgentType>> getClusterTypesMap();
+    void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap);
 }
