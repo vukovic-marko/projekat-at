@@ -36,11 +36,6 @@ public class AgentsCenterController {
             center.sendAgentsCenters(agentsCenter, nodes1);
             center.getRegisteredCenters().add(agentsCenter);
 
-            for (AgentsCenter c: nodes1) {
-                System.out.println("returning");
-                System.out.println(c.getAddress());
-            }
-
             return Response.ok(nodes1).build();
 
         } else {

@@ -429,27 +429,30 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     @Schedule(hour = "*", minute = "*", second = "*/10")
     public void heartbeat() {
 
-        if (!masterNode) {
-            ResteasyClient client = new ResteasyClientBuilder().build();
-            ResteasyWebTarget target;
-            Response response;
+//        if (!masterNode) {
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyWebTarget target;
+        Response response;
 
-            List<AgentsCenter> toRemove = new ArrayList<>();
+        List<AgentsCenter> toRemove = new ArrayList<>();
 
-            for (AgentsCenter center : registeredCenters) {
-                try {
-                    target = client.target(center.getAddress() + "/node");
-                    response = target.request(MediaType.APPLICATION_JSON).get();
-                    System.out.println(center.getAlias() + "@" + response.getStatus());
-                    response.close();
-                } catch (Exception e) {
-                    System.out.println(center.getAlias() + "@" + center.getAddress() + " izasao iz mreze");
+        for (AgentsCenter center : registeredCenters) {
+            try {
+                target = client.target(center.getAddress() + "/node");
+                response = target.request(MediaType.APPLICATION_JSON).get();
+                System.out.println(center.getAlias() + "@" + response.getStatus());
+                response.close();
+            } catch (Exception e) {
+                System.out.println(center.getAlias() + "@" + center.getAddress() + " izasao iz mreze");
 
+                if (masterNode) {
+                    toRemove.add(center);
+                } else {
                     target = client.target(mastersAddress + "/node/" + center.getAlias());
 
                     for (AgentsCenter c : registeredCenters) {
                         if (c.getAlias().equals(center.getAlias())) {
-                            toRemove.add(c);
+                            toRemove.add(center);
                             break;
                         }
                     }
@@ -458,14 +461,15 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     response.close();
                 }
             }
-
-            toRemove.forEach(item -> {
-                registeredCenters.remove(item);
-                clusterTypesMap.remove(item.getAlias() + "@" + item.getAddress());
-            });
-
-            client.close();
         }
+
+        toRemove.forEach(item -> {
+            registeredCenters.remove(item);
+            clusterTypesMap.remove(item.getAlias() + "@" + item.getAddress());
+        });
+
+        client.close();
+//        }
 
     }
 
