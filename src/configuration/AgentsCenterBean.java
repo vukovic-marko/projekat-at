@@ -85,28 +85,34 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                     mastersAddress = masterAddress;
 
+                    // slanje zahtava master cvoru za registraciju
+                    //
+                    // masterNodeAddress/node
+                    //
+                    // sa parametrom objekta tipa agentscenter koji odgovara agentskom centru koji salje zahtev
+
                     ResteasyClient client = new ResteasyClientBuilder().build();
                     ResteasyWebTarget target = client.target(masterAddress + "/node");
 
-                    AgentsCenter a = new AgentsCenter();
-                    a.setAddress(nodeAddress);
-                    a.setAlias(alias);
-
                     Response response = target.request(MediaType.APPLICATION_JSON)
-                            .post(Entity.entity(a, MediaType.APPLICATION_JSON));
+                            .post(Entity.entity(agentsCenter, MediaType.APPLICATION_JSON));
 
                     List<AgentsCenter> retList = response.readEntity(new GenericType<List<AgentsCenter>>(){});
 
                     if (retList != null) {
-//                        registeredCenters.addAll(retList);
                         registeredCenters = new ArrayList<>(retList);
                     }
 
-                    for (AgentsCenter center: registeredCenters) {
-                        System.out.println(center.getAddress());
-                    }
-
                     response.close();
+
+                    // slanje zahteva master cvoru za dobijanje mape svih agentskih cvorova
+                    // sa tipovima agenata koje oni podrzavaju
+                    //
+                    // masterNodeAddress/agents/classes
+                    //
+                    // sa parametrom mape, ciji je jedini par:
+                    //      kljuc       - string koji sadrzi alias@address
+                    //      vrednost    - lista podrzanih tipova agenata
 
                     target = client.target(masterAddress + "/agents/classes");
 
@@ -117,6 +123,18 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                             .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
 
                     clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>(){});
+
+                    response.close();
+
+                    // slanje zahteva master cvoru za dobijanje liste svih pokrenutih agenata u mreze
+                    //
+                    // master/agents/running
+
+                    target = client.target(masterAddress + "/agents/running");
+
+                    response = target.request(MediaType.APPLICATION_JSON).get();
+
+                    runningAgents = response.readEntity(new GenericType<List<AID>>() {});
 
                     response.close();
 
@@ -431,7 +449,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                     for (AgentsCenter c : registeredCenters) {
                         if (c.getAlias().equals(center.getAlias())) {
-//                            registeredCenters.remove(c);
                             toRemove.add(c);
                             break;
                         }
