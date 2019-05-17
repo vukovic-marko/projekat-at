@@ -2,9 +2,14 @@ package controllers;
 
 import configuration.IAgentsCenterBean;
 import model.AgentsCenter;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+
 import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,32 +19,79 @@ public class AgentsCenterController {
     @EJB
     private IAgentsCenterBean agentsCenterBean;
 
+    @GET
+    @Path("/node")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response heartbeat() {
+        return Response.ok().build();
+    }
+
     @POST
     @Path("/node")
     @Consumes(MediaType.APPLICATION_JSON)
-    public List<AgentsCenter> register(AgentsCenter agentsCenter) {
+    public Response register(AgentsCenter agentsCenter) {
         if (agentsCenterBean.isMasterNode()) {
             List<AgentsCenter> nodes1 = new ArrayList<>(agentsCenterBean.getRegisteredCenters());
 
             agentsCenterBean.sendAgentsCenters(agentsCenter, nodes1);
             agentsCenterBean.getRegisteredCenters().add(agentsCenter);
 
-            return nodes1;
+            for (AgentsCenter c: nodes1) {
+                System.out.println("returning");
+                System.out.println(c.getAddress());
+            }
+
+            return Response.ok(nodes1).build();
 
         } else {
             agentsCenterBean.getRegisteredCenters().add(agentsCenter);
 
-            return null;
+            return Response.ok().build();
 
         }
 
+    }
+
+    @DELETE
+    @Path("/node/{alias}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response delete(@PathParam("alias") String alias, @HeaderParam("sender") String sender) {
+        System.out.println("node with name '" + alias + "' to be deleted, discovered by: " + sender);
+        for (AgentsCenter center : agentsCenterBean.getRegisteredCenters()) {
+            if (center.getAlias().equals(alias)) {
+
+                if (agentsCenterBean.isMasterNode()) {
+                    ResteasyClient client = new ResteasyClientBuilder().build();
+                    ResteasyWebTarget target;
+                    Response response;
+
+                    for (AgentsCenter c : agentsCenterBean.getRegisteredCenters()) {
+                        if (center.getAddress().equals(sender))
+                            continue;
+                        if (center.getAlias().equals(alias))
+                            continue;
+
+                        System.out.println("telling: " + center.getAddress() + " to delete: " + alias);
+
+                        target = client.target(center.getAddress() + "/node/" + alias);
+                        response = target.request(MediaType.APPLICATION_JSON).delete();
+                        response.close();
+                    }
+                    client.close();
+                }
+                agentsCenterBean.getRegisteredCenters().remove(center);
+                agentsCenterBean.getClusterTypesMap().remove(center.getAlias()+ "@" + center.getAddress());
+                break;
+            }
+        }
+        return Response.ok().build();
     }
 
 
     @GET
     @Path("/nodes")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AgentsCenter> getNodes() {
-        return agentsCenterBean.getRegisteredCenters();
+    public Response getNodes() {
+        return Response.ok(agentsCenterBean.getRegisteredCenters()).build();
     }
 }
