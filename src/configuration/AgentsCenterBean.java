@@ -9,10 +9,12 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.naming.*;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -83,23 +85,34 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                     mastersAddress = masterAddress;
 
+                    // slanje zahtava master cvoru za registraciju
+                    //
+                    // masterNodeAddress/node
+                    //
+                    // sa parametrom objekta tipa agentscenter koji odgovara agentskom centru koji salje zahtev
+
                     ResteasyClient client = new ResteasyClientBuilder().build();
                     ResteasyWebTarget target = client.target(masterAddress + "/node");
 
-                    AgentsCenter a = new AgentsCenter();
-                    a.setAddress(nodeAddress);
-                    a.setAlias(alias);
-
                     Response response = target.request(MediaType.APPLICATION_JSON)
-                            .post(Entity.entity(a, MediaType.APPLICATION_JSON));
+                            .post(Entity.entity(agentsCenter, MediaType.APPLICATION_JSON));
 
-                    List<AgentsCenter> retList = response.readEntity(List.class);
+                    List<AgentsCenter> retList = response.readEntity(new GenericType<List<AgentsCenter>>(){});
 
                     if (retList != null) {
-                        registeredCenters.addAll(retList);
+                        registeredCenters = new ArrayList<>(retList);
                     }
 
                     response.close();
+
+                    // slanje zahteva master cvoru za dobijanje mape svih agentskih cvorova
+                    // sa tipovima agenata koje oni podrzavaju
+                    //
+                    // masterNodeAddress/agents/classes
+                    //
+                    // sa parametrom mape, ciji je jedini par:
+                    //      kljuc       - string koji sadrzi alias@address
+                    //      vrednost    - lista podrzanih tipova agenata
 
                     target = client.target(masterAddress + "/agents/classes");
 
@@ -109,7 +122,19 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     response = target.request(MediaType.APPLICATION_JSON)
                             .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
 
-                    clusterTypesMap = response.readEntity(Map.class);
+                    clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>(){});
+
+                    response.close();
+
+                    // slanje zahteva master cvoru za dobijanje liste svih pokrenutih agenata u mreze
+                    //
+                    // master/agents/running
+
+                    target = client.target(masterAddress + "/agents/running");
+
+                    response = target.request(MediaType.APPLICATION_JSON).get();
+
+                    runningAgents = response.readEntity(new GenericType<List<AID>>() {});
 
                     response.close();
 
@@ -399,6 +424,53 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     @Override
     public void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap) {
         this.clusterTypesMap = clusterTypesMap;
+    }
+
+    @Schedule(hour = "*", minute = "*", second = "*/10")
+    public void heartbeat() {
+
+//        if (!masterNode) {
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyWebTarget target;
+        Response response;
+
+        List<AgentsCenter> toRemove = new ArrayList<>();
+
+        for (AgentsCenter center : registeredCenters) {
+            try {
+                target = client.target(center.getAddress() + "/node");
+                response = target.request(MediaType.APPLICATION_JSON).get();
+                System.out.println(center.getAlias() + "@" + response.getStatus());
+                response.close();
+            } catch (Exception e) {
+                System.out.println(center.getAlias() + "@" + center.getAddress() + " izasao iz mreze");
+
+                if (masterNode) {
+                    toRemove.add(center);
+                } else {
+                    target = client.target(mastersAddress + "/node/" + center.getAlias());
+
+                    for (AgentsCenter c : registeredCenters) {
+                        if (c.getAlias().equals(center.getAlias())) {
+                            toRemove.add(center);
+                            break;
+                        }
+                    }
+
+                    response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress()).delete();
+                    response.close();
+                }
+            }
+        }
+
+        toRemove.forEach(item -> {
+            registeredCenters.remove(item);
+            clusterTypesMap.remove(item.getAlias() + "@" + item.getAddress());
+        });
+
+        client.close();
+//        }
+
     }
 
 //    /**
