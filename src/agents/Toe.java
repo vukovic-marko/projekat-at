@@ -14,6 +14,7 @@ public class Toe extends Agent {
     @Override
     public void handleMessage(ACLMessage message) {
 
+        System.out.println("I'm Toe!");
     }
 
 }

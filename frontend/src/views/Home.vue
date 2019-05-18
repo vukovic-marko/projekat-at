@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <AgentTypesSlot id="agentTypesSlot" />
+    
   </div>
 </template>
 

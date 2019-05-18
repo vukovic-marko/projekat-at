@@ -14,5 +14,6 @@ public class Tic extends Agent {
     @Override
     public void handleMessage(ACLMessage message) {
 
+        System.out.println("I'm Tic!");
     }
 }
