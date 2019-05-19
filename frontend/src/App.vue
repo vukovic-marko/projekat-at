@@ -14,13 +14,16 @@
       </b-collapse>
     </b-navbar>
     <router-view/>
-    <Console id="console" />
+    <Console id="console" :consoleOutput="consoleOutput" />
   </div>
 </template>
 
 <script>
 
 import Console from '@/components/Console.vue'
+import axios from 'axios'
+import { types } from 'util';
+import { SOCKET } from './variables';
 
 export default {
   name: 'home',
@@ -29,7 +32,64 @@ export default {
   },
   methods: {
 
+    socket_opened: function() {
+      //alert("Socket opened")
+      console.log("Socket opened")
+    },
+
+    socket_closed: function(e) {
+      //alert("Socket closed")
+      console.log("Socket closed")
+    },
+
+    socket_error: function(e) {
+      //alert("Socket error")
+      console.log("Socket error")
+    },
+
+    on_message: function(message) {
+      var msg = JSON.parse(message.data)
+
+      if (msg.type === "CONSOLE") {
+
+        var d = new Date();
+        var time = ("0" + d.getHours()).substr(-2) + ':' + ("0" + d.getMinutes()).substr(-2) + ':' + ("0" + d.getSeconds()).substr(-2);
+        this.consoleOutput += time + " - " + msg.text + "\n"
+
+      } else if (msg.type === "NEW_TYPE") {
+
+      } else if (msg.type === "NEW_AGENT") {
+
+      } else if (msg.type === "STOP_AGENT") {
+
+      } else {
+        alert("Unknown message type")
+      }
+
+    }
+
+
+
+  },
+  data() {
+    return {
+      types: [],
+      running: [],
+      performatives: [],
+      socket: new WebSocket(SOCKET),
+      msg: "",
+      obj: Object,
+      consoleOutput: "",
+    }
+  },
+  created() {
+    this.socket.onopen = this.socket_opened;
+    this.socket.onclose = this.socket_closed;
+    this.socket.onerror = this.socket_error;
+    this.socket.onmessage = this.on_message;
+
   }
+
 }
 
 </script>

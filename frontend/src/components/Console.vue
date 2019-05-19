@@ -3,7 +3,7 @@
         <span id="consoleTitle">Console output</span>
         <b-form-textarea
             id="textarea"
-            v-model="text"
+            v-model="consoleOutput"
             plaintext
         ></b-form-textarea>
     </div>
@@ -12,6 +12,7 @@
 <script>
 export default {
     name: 'Console',
+    props: ["consoleOutput"],
     data() {
       return {
         text: ""

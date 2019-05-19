@@ -1,9 +1,9 @@
 <template>
     <div class="agentTypes">
-        <span>Agent types</span>
+        <span>Running agents</span>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item" v-for="type in types" v-bind:key="type.name">
-                {{ type.name }}
+            <li class="list-group-item" v-for="aid in running" v-bind:key="aid.id">
+                {{ aid.name }}[{{ aid.type.name }}]@{{ aid.host.alias }}
             </li>
         </ul>
     </div>
@@ -15,19 +15,18 @@ import axios from 'axios'
 import { API } from '../variables.js'
 
 export default {
-    name : 'agentTypesSlot',
+    name : 'runningAgentsSlot',
     components: {
 
     },
     data() {
         return {
-            types: [],
+            running: [],
         }
     },
-    created() {
-
-        axios.get(API + '/agents/classes')
-            .then(res => this.types = res.data)
+    created() {        
+        axios.get(API + "/agents/running")
+            .then(res => this.running = res.data)
             .catch(err => console.log(err))
     }
 }
