@@ -6,6 +6,7 @@ import model.ACLMessage;
 import model.AID;
 import model.AgentsCenter;
 import restclient.IRestClient;
+import websocket.ConsoleEndpoint;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
@@ -14,17 +15,20 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
+import static websocket.ConsoleEndpoint.MessageType.CONSOLE;
+
 @Path("/messages")
+
 public class MessagesController {
 
     @EJB
-    IAgentsCenterBean center;
+    private IAgentsCenterBean center;
 
     @EJB
-    IRestClient restClient;
+    private IRestClient restClient;
 
     @EJB
-    IMessenger messenger;
+    private IMessenger messenger;
 
     /**
      *
@@ -80,6 +84,21 @@ public class MessagesController {
         }
 
         return Response.ok(performativesList).build();
+    }
+
+    @EJB
+    private ConsoleEndpoint endpoint;
+
+    @GET
+    @Path("/ws")
+    public Response testWs() {
+
+        String s = "Hi!";
+        
+        endpoint.sendMessage(s, CONSOLE);
+
+
+        return Response.ok().build();
     }
 
 }
