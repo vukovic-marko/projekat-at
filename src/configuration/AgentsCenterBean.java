@@ -426,7 +426,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         this.clusterTypesMap = clusterTypesMap;
     }
 
-    @Schedule(hour = "*", minute = "*", second = "*/10")
+    @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void heartbeat() {
 
 //        if (!masterNode) {
