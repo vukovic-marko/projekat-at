@@ -44,12 +44,14 @@ public class ConsoleEndpoint {
     @OnClose
     public void onClose(Session session) throws IOException {
         logger.log(Level.INFO, "Websocket closed");
+        sessions.remove(session);
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
         // Do error handling here
         logger.log(Level.INFO, "Websocket error occured");
+        sessions.remove(session);
     }
 
     public void sendMessage(String message, MessageType type) {

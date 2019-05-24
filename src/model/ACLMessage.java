@@ -1,7 +1,9 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class ACLMessage implements Serializable {
 
@@ -47,11 +49,15 @@ public class ACLMessage implements Serializable {
     private String conversationId;
 
     private String replyWith;
-    private String InreplyTo;
+    private String inReplyTo;
     private String replyBy;
 
     public ACLMessage () {
 
+    }
+
+    public ACLMessage(Performative performative) {
+        this.performative = performative;
     }
 
     public Performative getPerformative() {
@@ -158,12 +164,12 @@ public class ACLMessage implements Serializable {
         this.replyWith = replyWith;
     }
 
-    public String getInreplyTo() {
-        return InreplyTo;
+    public String getInReplyTo() {
+        return inReplyTo;
     }
 
-    public void setInreplyTo(String inreplyTo) {
-        InreplyTo = inreplyTo;
+    public void setInReplyTo(String inreplyTo) {
+        inReplyTo = inreplyTo;
     }
 
     public String getReplyBy() {
@@ -173,4 +179,38 @@ public class ACLMessage implements Serializable {
     public void setReplyBy(String replyBy) {
         this.replyBy = replyBy;
     }
+
+    public void addReceiver(AID aid) {
+
+        List<AID> tempList = Arrays.asList( receivers );
+
+        tempList.add(aid);
+
+        receivers = new AID[tempList.size()];
+
+        receivers = tempList.toArray(receivers);
+
+    }
+
+    public boolean canReplyTo() {
+        return sender != null || replyTo != null;
+    }
+
+    public ACLMessage makeReply(Performative performative) {
+        if (!canReplyTo())
+            throw new IllegalArgumentException("There's no-one to receive the reply.");
+        ACLMessage reply = new ACLMessage(performative);
+
+        reply.addReceiver(replyTo != null ? replyTo : sender);
+
+        reply.language = language;
+        reply.ontology = ontology;
+        reply.encoding = encoding;
+
+        reply.protocol = protocol;
+        reply.conversationId = conversationId;
+        reply.inReplyTo = replyWith;
+        return reply;
+    }
+
 }

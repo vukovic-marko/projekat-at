@@ -1,6 +1,7 @@
 package messaging;
 
-import model.*;
+import model.ACLMessage;
+import model.AID;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -40,6 +41,22 @@ public class Messenger implements IMessenger {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void sendMessage(ACLMessage message) {
+
+        AID[] ids = message.getReceivers();
+
+        if (ids == null || ids.length==0) {
+            return;
+        }
+
+        for (int i = 0; i < ids.length; i++) {
+            AID aid = ids[i];
+            sendMessageToAgent(message, aid, i);
+        }
+    }
+
 
     @Override
     public void sendMessageToAgent(ACLMessage message, AID aid, int index) {

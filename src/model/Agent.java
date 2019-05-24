@@ -1,11 +1,17 @@
 package model;
 
+import messaging.IMessenger;
+
+import javax.ejb.EJB;
 import javax.ejb.Stateful;
 
 @Stateful
 public abstract class Agent implements AgentI {
 
-    public AID aid;
+    protected AID aid;
+
+    @EJB
+    protected IMessenger messenger;
 
     @Override
     public AID getAid() {

@@ -5,6 +5,7 @@ import messaging.IMessenger;
 import model.ACLMessage;
 import model.AID;
 import model.AgentsCenter;
+import mongodb.MongoDB;
 import restclient.IRestClient;
 import websocket.ConsoleEndpoint;
 
@@ -29,6 +30,9 @@ public class MessagesController {
 
     @EJB
     private IMessenger messenger;
+
+    @EJB
+    private MongoDB db;
 
     /**
      *
@@ -94,11 +98,45 @@ public class MessagesController {
     public Response testWs() {
 
         String s = "Hi!";
-        
-        endpoint.sendMessage(s, CONSOLE);
 
+        db.test("agents_db");
+
+        endpoint.sendMessage(s, CONSOLE);
 
         return Response.ok().build();
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
