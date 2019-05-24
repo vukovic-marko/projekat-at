@@ -437,29 +437,46 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         List<AgentsCenter> toRemove = new ArrayList<>();
 
         for (AgentsCenter center : registeredCenters) {
-            try {
-                target = client.target(center.getAddress() + "/node");
-                response = target.request(MediaType.APPLICATION_JSON).get();
-                System.out.println(center.getAlias() + "@" + response.getStatus());
-                response.close();
-            } catch (Exception e) {
-                System.out.println(center.getAlias() + "@" + center.getAddress() + " izasao iz mreze");
-
-                if (masterNode) {
-                    toRemove.add(center);
-                } else {
-                    target = client.target(mastersAddress + "/node/" + center.getAlias());
-
-                    for (AgentsCenter c : registeredCenters) {
-                        if (c.getAlias().equals(center.getAlias())) {
-                            toRemove.add(center);
-                            break;
-                        }
-                    }
-
-                    response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress()).delete();
+            int i = 0;
+            while(true) {
+//                if (i != 0) {
+//                    System.out.println("sleeping for 2s");
+//                    try {
+//                        Thread.sleep(2000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+                try {
+                    target = client.target(center.getAddress() + "/node");
+                    response = target.request(MediaType.APPLICATION_JSON).get();
+                    System.out.println(center.getAlias() + "@" + response.getStatus());
                     response.close();
+                    break;
+                } catch (Exception e) {
+                    System.out.println("not found in try " + i);
+                    if (i == 1) {
+                        System.out.println(center.getAlias() + "@" + center.getAddress() + " izasao iz mreze");
+
+                        if (masterNode) {
+                            toRemove.add(center);
+                        } else {
+                            target = client.target(mastersAddress + "/node/" + center.getAlias());
+
+                            for (AgentsCenter c : registeredCenters) {
+                                if (c.getAlias().equals(center.getAlias())) {
+                                    toRemove.add(center);
+                                    break;
+                                }
+                            }
+
+                            response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress()).delete();
+                            response.close();
+                        }
+                        break;
+                    }
                 }
+                i++;
             }
         }
 
