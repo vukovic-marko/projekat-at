@@ -3,6 +3,7 @@
     <AgentTypesSlot id="agentTypesSlot" />
     <RunningAgentsSlot id="runningAgentsSlot" />
     <RunAgentSlot id="runAgentSlot" />
+    <StopAgentSlot id="stopAgentSlot" />
   </div>
 </template>
 
@@ -11,15 +12,15 @@
 import AgentTypesSlot from '@/components/AgentTypesSlot.vue'
 import RunningAgentsSlot from '@/components/RunningAgentsSlot.vue'
 import RunAgentSlot from '@/components/RunAgentSlot.vue'
-import { types } from 'util';
-
+import StopAgentSlot from '@/components/StopAgentSlot.vue'
 
 export default {
   name: 'home',
   components: {
     AgentTypesSlot,
     RunningAgentsSlot,
-    RunAgentSlot
+    RunAgentSlot,
+    StopAgentSlot
   },
   data() {
     return {
@@ -57,6 +58,15 @@ export default {
   height: 45%;
   width: 25%;
   transform: translate(254%, 5%);
+  align-content: center;
+}
+
+#stopAgentSlot {
+  position: fixed;
+  left: 0;
+  height: 45%;
+  width: 25%;
+  transform: translate(254%, 70%);
   align-content: center;
 }
 

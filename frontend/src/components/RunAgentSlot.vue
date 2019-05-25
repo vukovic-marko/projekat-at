@@ -6,16 +6,17 @@
                 <tr>
                     <td>
                         <select class="custom-select my-1 mr-sm-2" v-model="selectedType">
-                            <option v-for="type in types" :value="option" v-bind:key="type.name">{{type.name}}</option>
+                            <option value="" disabled selected>Choose agent type</option>
+                            <option v-for="type in types" :value="type.module + '.' + type.name" v-bind:key="type.name">{{type.name}}</option>
                         </select>
                     </td>
-                    <td><input type="name" class="form-control" id="name" placeholder="Agent name"></td>
+                    <td><input type="text" v-model="name" class="form-control" id="name" placeholder="Agent name"></td>
                 </tr>
                 <br />
                 <tr>
                     <td>&nbsp;</td>
                     <td>
-                        <button type="submit" class="btn btn-primary">Run</button> 
+                        <button v-on:click="runAgent" class="btn btn-primary">Run</button> 
                     </td>
                 </tr>
             </tbody>
@@ -37,7 +38,7 @@ export default {
         return {
             types: [],
             selectedType: "",
-            option: "",
+            name: ""
         }
     },
     created() {
@@ -45,6 +46,27 @@ export default {
         axios.get(API + '/agents/classes')
             .then(res => this.types = res.data)
             .catch(err => console.log(err))
+    },
+    methods: {
+        runAgent: function(e) {
+            
+            var type = this.selectedType
+            var name = this.name
+
+            if (!type || type === "") {
+                alert("Please select agent type")
+                return
+            }
+
+            if (!name || name === "") {
+                alert("Please enter agent name")
+                return
+            }
+
+            axios.put(API + '/agents/running/' + type + '/' + name)
+                .then(res => console.log('Agent successfully runned'))
+                .catch( err => console.log(err))
+        }
     }
 }
 </script>
