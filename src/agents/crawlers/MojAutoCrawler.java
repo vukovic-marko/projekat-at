@@ -1,4 +1,4 @@
-package agents;
+package agents.crawlers;
 
 import model.ACLMessage;
 import model.Agent;

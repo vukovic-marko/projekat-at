@@ -1,4 +1,4 @@
-package agents;
+package agents.crawlers;
 
 import model.ACLMessage;
 import model.Agent;
@@ -9,12 +9,12 @@ import javax.ejb.Stateful;
 
 @Stateful
 @Remote(AgentI.class)
-public class Tac extends Agent {
+public class MobileCrawler extends Agent {
 
     @Override
     public void handleMessage(ACLMessage message) {
 
-        System.out.println("I'm Tac!");
+        System.out.println("I crawl on mobile.de!");
 
     }
 }

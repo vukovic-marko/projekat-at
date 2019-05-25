@@ -1,6 +1,6 @@
 package configuration;
 
-import agents.Ping;
+import agents.test.Ping;
 import application.App;
 import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
@@ -27,39 +27,37 @@ import java.util.stream.Collectors;
 public class AgentsCenterBean implements IAgentsCenterBean {
 
     private AgentsCenter agentsCenter;
-
-    private List<AgentsCenter> registeredCenters;
-    private Boolean masterNode;
-
-    private Map<AgentType, AgentsCenter> typesMap;
-    private List<AID> runningAgents;
+    private List<AgentType> hostTypes;
     private Map<AID, AgentI> hostRunningAgents;
 
-    private Map<String, List<AgentType>> clusterTypesMap;
+    private Boolean masterNode;
     private String mastersAddress; // za ne-master cvorove
+
+    private List<AgentsCenter> registeredCenters;
+
+    private Map<String, List<AgentType>> clusterTypesMap;
+    private List<AID> runningAgents;
 
     @PostConstruct
     public void init() {
         try (InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties")) {
 
             Properties prop = new Properties();
-            String masterAddress = null;
-            String nodeAddress = null;
-            String alias = null;
 
             agentsCenter = new AgentsCenter();
-            registeredCenters = new ArrayList<AgentsCenter>();
-            typesMap = new HashMap<>();
+            registeredCenters = new ArrayList<>();
+            // typesMap = new HashMap<>();
             runningAgents = new ArrayList<>();
             hostRunningAgents = new HashMap<>();
             clusterTypesMap = new HashMap<>();
+            hostTypes = new ArrayList<>();
 
             if (input != null) {
                 prop.load(input);
 
-                masterAddress = prop.getProperty("master_address", null);
-                nodeAddress = prop.getProperty("node_address");
-                alias = prop.getProperty("alias").trim();
+                String masterAddress = prop.getProperty("master_address", null);
+                String nodeAddress = prop.getProperty("node_address");
+                String alias = prop.getProperty("alias").trim();
                 String agentsConfig = prop.getProperty("ignore_agents", "");
                 List<String> agentsConfigList = new ArrayList<>();
 
@@ -79,7 +77,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                 if (masterAddress == null) {
                     masterNode = true;
-                    clusterTypesMap.put(alias + "@" + nodeAddress, getTypes());
+                    clusterTypesMap.put(alias + "@" + nodeAddress, getHostTypes());
                 } else {
                     masterNode = false;
 
@@ -117,7 +115,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     target = client.target(masterAddress + "/agents/classes");
 
                     Map<String, List<AgentType>> temp = new HashMap<>();
-                    temp.put(alias + "@" + nodeAddress, getTypes());
+                    temp.put(alias + "@" + nodeAddress, getHostTypes());
 
                     response = target.request(MediaType.APPLICATION_JSON)
                             .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
@@ -155,15 +153,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
-    private void addAgentTypesFromConfig(String agentsProp) {
-        String agents[] = agentsProp.split(",");
-        for (String agent : agents) {
-            String parts[] = agent.split("\\.");
-            AgentType agentType = new AgentType(parts[1], parts[0]);
-            typesMap.put(agentType, agentsCenter);
-        }
-    }
-
     public void sendAgentsCenters(AgentsCenter center, List<AgentsCenter> receivers) {
         ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter c : receivers) {
@@ -189,10 +178,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         return registeredCenters;
     }
 
-    public void setRegisteredCenters(List<AgentsCenter> registeredCenters) {
-        this.registeredCenters = registeredCenters;
-    }
-
     public Boolean isMasterNode() {
         return masterNode;
     }
@@ -209,12 +194,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         Hashtable<String, Object> jndiProps = new Hashtable<>();
         jndiProps.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
         return new InitialContext(jndiProps);
-    }
-
-    @Override
-    public List<AgentType> getTypes() {
-
-        return new ArrayList(typesMap.keySet());
     }
 
     private void addHostCenterTypes(String path, List<String> ignoredAgents) throws NamingException {
@@ -247,11 +226,18 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                         type.setModule(module);
                         type.setName(name);
 
-                        typesMap.put(type, agentsCenter);
+                        hostTypes.add(type);
                     }
                 }
             }
         }
+    }
+
+    @Override
+    public List<AgentType> getHostTypes() {
+
+        return hostTypes;
+
     }
 
     @Override
@@ -289,11 +275,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     @Override
     public List<AID> getRunningAgents() {
         return runningAgents;
-    }
-
-    @Override
-    public Map<AgentType, AgentsCenter> getTypesMap() {
-        return typesMap;
     }
 
     @Override
@@ -385,7 +366,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             return false;
         }
 
-        List<AID> ids = null;
+        //List<AID> ids = null;
         for (AID i : hostRunningAgents.keySet()) {
             if (i.equals(aid)) {
                 hostRunningAgents.remove(i);
@@ -490,7 +471,21 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
-//    /**
+    @Override
+    public List<AgentType> getAllTypes() {
+
+        List<AgentType> types = new ArrayList<>();
+
+        for (List<AgentType> nodeTypes : clusterTypesMap.values()) {
+            types.addAll(nodeTypes);
+        }
+
+        return types;
+
+    }
+
+
+    //    /**
 //     * Funkcija koja pronalazi agenta zapisanog u notaciji alias@address, i vraca ga kao objekat tipa AgentsCenter.
 //     *
 //     * @param str

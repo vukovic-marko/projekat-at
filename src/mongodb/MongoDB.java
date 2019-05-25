@@ -74,7 +74,7 @@ public class MongoDB {
         db.getCollection("slave");
         db.getCollection("nova");
 
-        client.getDatabaseNames().forEach(System.out::println);
+        //client.getDatabaseNames().forEach(System.out::println);
 
         MongoCollection<org.bson.Document> masterCol = db.getCollection("master");
         Document document = new Document();

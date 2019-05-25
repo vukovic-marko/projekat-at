@@ -9,7 +9,7 @@ import java.util.List;
 @Local
 public interface IRestClient {
 
-    void runRemoteAgent(AgentsCenter center, String type, String name);
+    void runRemoteAgent(String address, String type, String name);
 
     void notifyAgentStarted(AID aid, List<AgentsCenter> toNotify);
 

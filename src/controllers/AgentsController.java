@@ -33,7 +33,7 @@ public class AgentsController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgentTypes() {
 
-        List<AgentType> types = center.getTypes();
+        List<AgentType> types = center.getAllTypes();
 
         return Response.ok(types).build();
     }
@@ -108,29 +108,19 @@ public class AgentsController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
 
-        Map<AgentType, AgentsCenter> typesMap = center.getTypesMap();
+        Map<String, List<AgentType>> clusterTypesMap = center.getClusterTypesMap();
 
         AgentType agentType = new AgentType(type);
 
-        AgentsCenter originCenter = typesMap.get(agentType);
+        List<AgentType> hostTypes = center.getHostTypes();
 
-        for (AgentType at : typesMap.keySet()) {
-            if (at.equals(agentType)) {
-                originCenter = typesMap.get(at);
-                break;
-            }
-        }
-
-        if (originCenter==null) {
-            return Response.serverError().build();
-        }
-
+        String originCenterAddress = null;
         AgentI agent = null;
 
-        if (originCenter.equals(center.getAgentsCenter())) {
+        if (hostTypes.contains(agentType)) {
             try {
                 agent = center.runAgent(agentType, name);
-                // Nadji centre koje nisu host agenta
+                // Nadji centre koji nisu host agenta
                 List<AgentsCenter> toNotify = center.getRegisteredCenters();
 
                 restClient.notifyAgentStarted(agent.getAid(), toNotify);
@@ -140,13 +130,27 @@ public class AgentsController {
                 return Response.serverError().build();
             }
         } else {
-            restClient.runRemoteAgent(originCenter, type, name);
+            // Trazeni tip agenta ne postoji na hostu
+
+            for (Map.Entry<String, List<AgentType>> pair : clusterTypesMap.entrySet()) {
+                if (pair.getValue().contains(type)) {
+                    originCenterAddress = (pair.getKey().split("@"))[0].trim();
+                    break;
+                }
+            }
+
+            if (originCenterAddress == null) {
+                return Response.serverError().build();
+            }
+
+            restClient.runRemoteAgent(originCenterAddress, type, name);
+
         }
+
 
         return Response.ok(agent).build();
     }
 
-    // TODO : Prodiskutvati sa asistentom
     @DELETE
     // @Path("/running/{aid}")
     // public Response stopAgent(@PathParam("aid") String aid) {

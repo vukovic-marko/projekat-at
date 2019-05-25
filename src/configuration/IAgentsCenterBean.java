@@ -20,12 +20,10 @@ public interface IAgentsCenterBean {
     List<AgentsCenter> getRegisteredCenters();
     Boolean isMasterNode();
     void addToRegisteredCenters(List<AgentsCenter> list);
-    List<AgentType> getTypes();
 
     List<AgentType> getAvaliableAgentTypes() throws NamingException;
     List<AID> getRunningAgents();
     Map<AID, AgentI> getHostRunningAgents();
-    Map<AgentType, AgentsCenter> getTypesMap();
 
     List<String> traverse();
     AgentsCenter getAgentsCenter();
@@ -40,4 +38,7 @@ public interface IAgentsCenterBean {
 
     Map<String, List<AgentType>> getClusterTypesMap();
     void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap);
+
+    List<AgentType> getAllTypes();
+    List<AgentType> getHostTypes();
 }

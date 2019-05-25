@@ -19,11 +19,11 @@ import java.util.List;
 public class RestClient implements IRestClient {
 
     @Override
-    public void runRemoteAgent(AgentsCenter center, String type, String name) {
+    public void runRemoteAgent(String address, String type, String name) {
 
         ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.
-                target(center.getAddress() + "/agents/running/" +
+                target(address + "/agents/running/" +
                         name + "/" + type);
 
         Response response = target.request().put(null);
