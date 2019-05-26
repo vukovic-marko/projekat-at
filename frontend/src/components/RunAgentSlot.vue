@@ -1,7 +1,7 @@
 <template>
     <div class="agentTypes">
         <div>Run agent</div>
-        <form id="form" @submit="runAgent">
+        <form id="form" v-on:submit="runAgent">
             <table>
                 <tbody>
                     <tr>
@@ -17,7 +17,7 @@
                     <tr>
                         <td>&nbsp;</td>
                         <td>
-                            <button type="submit" class="btn btn-primary">Run</button> 
+                            <button type="submit" :disabled="!btnEnabled" class="btn btn-lg btn-success">Run</button> 
                         </td>
                     </tr>
                 </tbody>
@@ -41,6 +41,7 @@ export default {
             types: [],
             selectedType: "",
             name: "",
+            btnEnabled: true
         }
     },
     created() {
@@ -65,6 +66,8 @@ export default {
                 return
             }
 
+            this.btnEnabled = false
+
             axios.put(API + '/agents/running/' + type + '/' + name)
                 .then(res => {
                     console.log('Agent successfully ran')
@@ -82,6 +85,7 @@ export default {
                     }
                     
                 })
+                .finally ( this.btnEnabled = true )
         },
         updateTypes() {
             axios.get(API + '/agents/classes')

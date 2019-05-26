@@ -17,7 +17,7 @@
                     &nbsp;
                     &nbsp;
                     <td>
-                        <button v-on:click="stopAgent" id="btnStop" class="btn btn-danger">Stop</button> 
+                        <button v-on:click="stopAgent" :disabled="!btnEnabled" id="btnStop" class="btn btn-lg btn-danger">Stop</button> 
                     </td>
                 </tr>
             </tbody>
@@ -39,6 +39,7 @@ export default {
         return {
             running: [],
             selectedAgent: "",
+            btnEnabled: true
         }
     },
     created() {
@@ -54,6 +55,8 @@ export default {
                 return
             }
 
+            this.btnEnabled = false
+
             axios.delete(API + '/agents/running', 
                 {data: this.selectedAgent },
                 { headers: { "Content-Type": "application/json" } } )
@@ -65,6 +68,7 @@ export default {
                 .catch( err => {
                     console.log(err)
                 })
+                .finally ( this.btnEnabled = true )
         },
         addRunningAgent(aid) {
             this.running.push(aid)
