@@ -6,9 +6,12 @@ import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import websocket.ConsoleEndpoint;
+import websocket.MessageType;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.EJB;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -33,10 +36,13 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     private Boolean masterNode;
     private String mastersAddress; // za ne-master cvorove
 
-    private List<AgentsCenter> registeredCenters;
+    private Set<AgentsCenter> registeredCenters;
 
     private Map<String, List<AgentType>> clusterTypesMap;
     private List<AID> runningAgents;
+
+    @EJB
+    private ConsoleEndpoint ws;
 
     @PostConstruct
     public void init() {
@@ -45,8 +51,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             Properties prop = new Properties();
 
             agentsCenter = new AgentsCenter();
-            registeredCenters = new ArrayList<>();
-            // typesMap = new HashMap<>();
+            registeredCenters = new HashSet<>();
             runningAgents = new ArrayList<>();
             hostRunningAgents = new HashMap<>();
             clusterTypesMap = new HashMap<>();
@@ -98,10 +103,12 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     List<AgentsCenter> retList = response.readEntity(new GenericType<List<AgentsCenter>>(){});
 
                     if (retList != null) {
-                        registeredCenters = new ArrayList<>(retList);
+                        registeredCenters = new HashSet<>(retList);
                     }
 
                     response.close();
+
+                    ws.sendMessage("Established connection with master node at " + masterAddress);
 
                     // slanje zahteva master cvoru za dobijanje mape svih agentskih cvorova
                     // sa tipovima agenata koje oni podrzavaju
@@ -120,9 +127,13 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     response = target.request(MediaType.APPLICATION_JSON)
                             .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
 
+                    ws.sendMessage("Host agent types sent");
+
                     clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>(){});
 
                     response.close();
+
+                    ws.sendMessage("Received nodes list and agent types from master node");
 
                     // slanje zahteva master cvoru za dobijanje liste svih pokrenutih agenata u mreze
                     //
@@ -137,6 +148,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     response.close();
 
                     client.close();
+
+                    ws.sendMessage("Received running agents list from master node");
                 }
             } else {
                 System.err.println("Nije pronadjena config.properties datoteka!");
@@ -156,10 +169,12 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     public void sendAgentsCenters(AgentsCenter center, List<AgentsCenter> receivers) {
         ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter c : receivers) {
-            ResteasyWebTarget target = client.target(c.getAddress() + "/node");
-            Response response = target.request(MediaType.APPLICATION_JSON)
-                    .post(Entity.entity(center, MediaType.APPLICATION_JSON));
-            response.close();
+            if (!c.equals(agentsCenter) && !c.equals(center)) {
+                ResteasyWebTarget target = client.target(c.getAddress() + "/node");
+                Response response = target.request(MediaType.APPLICATION_JSON)
+                        .post(Entity.entity(center, MediaType.APPLICATION_JSON));
+                response.close();
+            }
         }
         client.close();
     }
@@ -174,7 +189,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
-    public List<AgentsCenter> getRegisteredCenters() {
+    public Set<AgentsCenter> getRegisteredCenters() {
         return registeredCenters;
     }
 
@@ -312,6 +327,15 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     public AgentI runAgent(AgentType type, String name) throws NamingException {
 
+        // Provera da li postoji agent sa kreiranim aid-om
+        AID aid = new AID(name, agentsCenter, type);
+
+        for (AID id : hostRunningAgents.keySet()) {
+            if (id.equals(aid)) {
+                return null;
+            }
+        }
+
         Context ctx = new InitialContext();
 
         String module = type.getModule().replaceAll("\\.", "/");
@@ -321,12 +345,13 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
         AgentI agent = (AgentI) ctx.lookup(lookupStr);
 
-        AID aid = new AID(name, agentsCenter, type);
-
         agent.init(aid);
 
         runningAgents.add(aid);
         hostRunningAgents.put(aid, agent);
+
+        ws.agentStarted(agent.getAid().getName(), agent.getAid().getType().getName(),
+                agent.getAid().getHost().getAlias());
 
         return agent;
 
@@ -344,36 +369,15 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
-    public void stopAgent(String aidName, String typeName) {
-
-        for (AID aid : runningAgents) {
-
-            if (aid.getName().equals(aidName) &&
-                    aid.getType().getName().equals(typeName)) {
-
-                runningAgents.remove(aid);
-
-            }
-
-        }
-
-    }
-
-    @Override
     public boolean stopHostAgent(AID aid) {
 
         if (!runningAgents.remove(aid)) {
             return false;
         }
 
-        //List<AID> ids = null;
-        for (AID i : hostRunningAgents.keySet()) {
-            if (i.equals(aid)) {
-                hostRunningAgents.remove(i);
-                // Posto je aid kljuc moguce ce biti obrisati samo jedan element
-                break;
-            }
-        }
+        hostRunningAgents.remove(aid);
+
+        ws.agentStopped(aid.getName(), aid.getType().getName(), agentsCenter.getAlias());
 
         return true;
     }
@@ -462,8 +466,16 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         }
 
         toRemove.forEach(item -> {
+            String key = item.getAlias() + "@" + item.getAddress();
             registeredCenters.remove(item);
-            clusterTypesMap.remove(item.getAlias() + "@" + item.getAddress());
+            clusterTypesMap.remove(key);
+            ws.sendMessage("Node '" + key + "' left the cluster", MessageType.UPDATE_ALL);
+
+            // Izbacivanje agenata hosta koji je napustion klaster
+            runningAgents = runningAgents.stream().filter(aid -> !aid.getHost().getAddress().equals(item.getAddress()) &&
+                    !aid.getHost().getAlias().equals(item.getAlias())).collect(Collectors.toList());
+
+
         });
 
         client.close();
@@ -472,9 +484,9 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
-    public List<AgentType> getAllTypes() {
+    public Set<AgentType> getAllTypes() {
 
-        List<AgentType> types = new ArrayList<>();
+        Set<AgentType> types = new HashSet<>();
 
         for (List<AgentType> nodeTypes : clusterTypesMap.values()) {
             types.addAll(nodeTypes);

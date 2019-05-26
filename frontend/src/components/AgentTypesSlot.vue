@@ -2,8 +2,8 @@
     <div class="agentTypes">
         <span>Agent types</span>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item" v-for="type in types" v-bind:key="type.name">
-                {{ type.name }}
+            <li class="list-group-item" v-for="type in types" v-bind:key="type.name + type.module">
+                {{ type.name }}.{{type.module}}
             </li>
         </ul>
     </div>
@@ -25,10 +25,16 @@ export default {
         }
     },
     created() {
-
         axios.get(API + '/agents/classes')
             .then(res => this.types = res.data)
             .catch(err => console.log(err))
+    },
+    methods: {
+        updateTypes() {
+            axios.get(API + '/agents/classes')
+                .then(res => this.types = res.data)
+                .catch(err => console.log(err))
+        }
     }
 }
 </script>

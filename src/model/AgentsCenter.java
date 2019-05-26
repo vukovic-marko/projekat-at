@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class AgentsCenter implements Serializable {
 
@@ -48,5 +49,10 @@ public class AgentsCenter implements Serializable {
 
         return false;
 
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, alias);
     }
 }

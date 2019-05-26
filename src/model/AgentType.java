@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class AgentType implements Serializable {
 
@@ -59,4 +60,10 @@ public class AgentType implements Serializable {
         return false;
 
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, module);
+    }
+
 }

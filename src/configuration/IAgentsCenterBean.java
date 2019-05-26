@@ -6,6 +6,7 @@ import javax.ejb.Local;
 import javax.naming.NamingException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Local
 public interface IAgentsCenterBean {
@@ -17,7 +18,7 @@ public interface IAgentsCenterBean {
 
     void sendAgentsCenters(AgentsCenter centers, List<AgentsCenter> receivers);
     //AgentsCenter getAgentsCenter();
-    List<AgentsCenter> getRegisteredCenters();
+    Set<AgentsCenter> getRegisteredCenters();
     Boolean isMasterNode();
     void addToRegisteredCenters(List<AgentsCenter> list);
 
@@ -31,7 +32,6 @@ public interface IAgentsCenterBean {
 
     void addRunningAgents(List<AID> running);
 
-    void stopAgent(String aidName, String typeName);
     boolean stopHostAgent(AID aid);
 
     void deliverMessageToAgent(ACLMessage receivedMessage, AID aid);
@@ -39,6 +39,7 @@ public interface IAgentsCenterBean {
     Map<String, List<AgentType>> getClusterTypesMap();
     void setClusterTypesMap(Map<String, List<AgentType>> clusterTypesMap);
 
-    List<AgentType> getAllTypes();
+    Set<AgentType> getAllTypes();
     List<AgentType> getHostTypes();
+
 }

@@ -1,9 +1,9 @@
 <template>
   <div class="home">
-    <AgentTypesSlot id="agentTypesSlot" />
-    <RunningAgentsSlot id="runningAgentsSlot" />
-    <RunAgentSlot id="runAgentSlot" />
-    <StopAgentSlot id="stopAgentSlot" />
+    <AgentTypesSlot id="agentTypesSlot" ref="agentTypesSlot" />
+    <RunningAgentsSlot id="runningAgentsSlot" ref="runningAgentsSlot" />
+    <RunAgentSlot id="runAgentSlot" ref="runAgentSlot" @new-agent="newAgent" />
+    <StopAgentSlot id="stopAgentSlot" ref="stopAgentSlot" @stopped-agent="stoppedAgent" />
   </div>
 </template>
 
@@ -29,6 +29,30 @@ export default {
   },
   created() {
 
+  },
+  methods: {
+    newAgent(aid) {
+      if (aid) {
+        this.$refs.runningAgentsSlot.addRunningAgent(aid)
+        this.$refs.stopAgentSlot.addRunningAgent(aid)
+      } else {
+        this.$refs.runningAgentsSlot.updateAgents()
+        this.$refs.stopAgentSlot.updateAgents()
+      }
+      
+    },
+    stoppedAgent(aid) {
+      this.$refs.runningAgentsSlot.removeRunningAgent(aid)
+      this.$refs.stopAgentSlot.removeRunningAgent(aid)
+    },
+    updateAgents() {
+      this.$refs.runningAgentsSlot.updateAgents()
+      this.$refs.stopAgentSlot.updateAgents()
+    },
+    updateTypes() {
+      this.$refs.runAgentSlot.updateTypes()
+      this.$refs.agentTypesSlot.updateTypes()
+    }
   }
 }
 </script>

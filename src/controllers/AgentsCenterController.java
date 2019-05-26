@@ -5,6 +5,7 @@ import model.AgentsCenter;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import websocket.ConsoleEndpoint;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
@@ -15,6 +16,9 @@ import java.util.List;
 
 @Path("/")
 public class AgentsCenterController {
+
+    @EJB
+    private ConsoleEndpoint ws;
 
     @EJB
     private IAgentsCenterBean center;
@@ -33,8 +37,15 @@ public class AgentsCenterController {
         if (center.isMasterNode()) {
             List<AgentsCenter> nodes1 = new ArrayList<>(center.getRegisteredCenters());
 
+            // Dodati sam master node
+            nodes1.add(center.getAgentsCenter());
+
             center.sendAgentsCenters(agentsCenter, nodes1);
-            center.getRegisteredCenters().add(agentsCenter);
+
+            if (center.getRegisteredCenters().add(agentsCenter)) {
+                ws.sendMessage("New node '" + agentsCenter.getAlias()
+                        + "@" + agentsCenter.getAddress() + "' joined the cluster");
+            }
 
             return Response.ok(nodes1).build();
 

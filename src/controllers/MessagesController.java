@@ -5,9 +5,9 @@ import messaging.IMessenger;
 import model.ACLMessage;
 import model.AID;
 import model.AgentsCenter;
+import model.Performative;
 import mongodb.MongoDB;
 import restclient.IRestClient;
-import websocket.ConsoleEndpoint;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
@@ -15,8 +15,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-
-import static websocket.ConsoleEndpoint.MessageType.CONSOLE;
 
 @Path("/messages")
 
@@ -72,11 +70,11 @@ public class MessagesController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPerformatives() {
 
-        ACLMessage.Performative[] performatives = ACLMessage.Performative.class.getEnumConstants();
+        Performative[] performatives = Performative.class.getEnumConstants();
 
         List<String> performativesList = new ArrayList<>();
 
-        for (ACLMessage.Performative performative : performatives) {
+        for (Performative performative : performatives) {
 
             String perfString = performative.toString().replace("_", " ");
 
@@ -89,23 +87,6 @@ public class MessagesController {
 
         return Response.ok(performativesList).build();
     }
-
-    @EJB
-    private ConsoleEndpoint endpoint;
-
-    @GET
-    @Path("/ws")
-    public Response testWs() {
-
-        String s = "Hi!";
-
-        db.test("agents_db");
-
-        endpoint.sendMessage(s, CONSOLE);
-
-        return Response.ok().build();
-    }
-
 }
 
 

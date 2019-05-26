@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class AID implements Serializable {
 
@@ -15,6 +16,14 @@ public class AID implements Serializable {
         this.name = name;
         this.host = host;
         this.type = type;
+    }
+
+    public AID(String aidName, String typeName, String moduleName, AgentsCenter agentsCenter) {
+
+        this.name = aidName;
+        this.type = new AgentType(typeName, moduleName);
+        this.host = agentsCenter;
+
     }
 
 
@@ -59,5 +68,10 @@ public class AID implements Serializable {
 
         return false;
 
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, host, type);
     }
 }

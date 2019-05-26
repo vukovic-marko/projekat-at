@@ -13,7 +13,7 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <router-view/>
+    <router-view ref="routerView" />
     <Console id="console" :consoleOutput="consoleOutput" />
   </div>
 </template>
@@ -49,19 +49,24 @@ export default {
 
     on_message: function(message) {
       var msg = JSON.parse(message.data)
-
+      
+      var d = new Date();
+      var time = ("0" + d.getHours()).substr(-2) + ':' + ("0" + d.getMinutes()).substr(-2) + ':' + ("0" + d.getSeconds()).substr(-2);
+      this.consoleOutput += time + " - " + msg.text + "\n"
+      
       if (msg.type === "CONSOLE") {
 
-        var d = new Date();
-        var time = ("0" + d.getHours()).substr(-2) + ':' + ("0" + d.getMinutes()).substr(-2) + ':' + ("0" + d.getSeconds()).substr(-2);
-        this.consoleOutput += time + " - " + msg.text + "\n"
-
-      } else if (msg.type === "NEW_TYPE") {
-
-      } else if (msg.type === "NEW_AGENT") {
-
+      } else if (msg.type === "UPDATE_TYPES") {
+        this.$refs.routerView.updateTypes()
+      } else if (msg.type == "UPDATE_AGENTS") {
+        this.$refs.routerView.updateAgents()
+      } else if (msg.type === "UPDATE_ALL") {
+        this.$refs.routerView.updateTypes()
+        this.$refs.routerView.updateAgents()
       } else if (msg.type === "STOP_AGENT") {
 
+      } else if (msg.type === "NEW_CENTER") {
+        
       } else {
         alert("Unknown message type")
       }

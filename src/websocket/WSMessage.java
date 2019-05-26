@@ -2,22 +2,35 @@ package websocket;
 
 public class WSMessage {
 
-    private ConsoleEndpoint.MessageType type;
     private String text;
+    private Object payload;
+    private MessageType type;
 
     public WSMessage() {
+        this(null, null, null);
+    }
+
+    public WSMessage(String text) {
+
+        this(text, MessageType.CONSOLE, null);
+    }
+
+    public WSMessage(String text, MessageType type) {
+
+        this(text, type, null);
 
     }
 
-    public WSMessage(ConsoleEndpoint.MessageType type, String text) {
+    public WSMessage(String text, Object payload) {
 
-        this.type = type;
+        this(text, MessageType.CONSOLE, payload);
 
+    }
+
+    public WSMessage(String text, MessageType type, Object payload) {
         this.text = text;
-    }
-
-    public ConsoleEndpoint.MessageType getType() {
-        return type;
+        this.type = type;
+        this.payload = payload;
     }
 
     public String getText() {
@@ -28,7 +41,20 @@ public class WSMessage {
         this.text = text;
     }
 
-    public void setType(ConsoleEndpoint.MessageType type) {
+    public Object getPayload() {
+        return payload;
+    }
+
+    public void setPayload(Object payload) {
+        this.payload = payload;
+    }
+
+    public MessageType getType() {
+        return type;
+    }
+
+    public void setType(MessageType type) {
         this.type = type;
     }
+
 }

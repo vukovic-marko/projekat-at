@@ -9,8 +9,8 @@
                             <option value="" disabled selected>Choose agent</option>
                             <option v-for="agent in running" 
                                     :value="agent" 
-                                    v-bind:key="agent.name + agent.host.address">
-                                    {{agent.name}}@{{agent.host.alias}}
+                                    v-bind:key="agent.name + agent.type.name + agent.host.address">
+                                    {{agent.name}}[{{agent.type.name}}]@{{agent.host.alias}}
                             </option>
                         </select>
                     </td>
@@ -57,8 +57,27 @@ export default {
             axios.delete(API + '/agents/running', 
                 {data: this.selectedAgent },
                 { headers: { "Content-Type": "application/json" } } )
-                .then( res => console.log('Agent successfully stopped'))
-                .catch( err => console.log(err))
+                .then( res => {
+                    console.log('Agent successfully stopped')
+                    this.$emit('stopped-agent', res.data)
+                    this.selectedAgent = ""
+                })
+                .catch( err => {
+                    console.log(err)
+                })
+        },
+        addRunningAgent(aid) {
+            this.running.push(aid)
+        },
+        removeRunningAgent(aid) {
+            axios.get(API + '/agents/running')
+                .then(res => this.running = res.data)
+                .catch(err => console.log(err))
+        },
+        updateAgents() {
+            axios.get(API + '/agents/running')
+                .then(res => this.running = res.data)
+                .catch(err => console.log(err))            
         }
     }
 }

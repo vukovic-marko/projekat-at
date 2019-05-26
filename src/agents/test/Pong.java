@@ -3,6 +3,7 @@ package agents.test;
 import model.ACLMessage;
 import model.Agent;
 import model.AgentI;
+import model.Performative;
 
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
@@ -18,8 +19,8 @@ public class Pong extends Agent {
 
         System.out.println("Hi from Pong!");
 
-        if(message.getPerformative() == ACLMessage.Performative.REQUEST) {
-            ACLMessage reply = message.makeReply(ACLMessage.Performative.INFORM);
+        if(message.getPerformative() == Performative.REQUEST) {
+            ACLMessage reply = message.makeReply(Performative.INFORM);
             reply.setSender(aid);
             reply.getUserArgs().put("pongCreatedOn", aid.getHost());
             reply.getUserArgs().put("pongWorkingOn", aid.getHost());

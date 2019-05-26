@@ -9,6 +9,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import restclient.IRestClient;
+import websocket.ConsoleEndpoint;
+import websocket.MessageType;
 
 import javax.ejb.EJB;
 import javax.naming.NamingException;
@@ -16,8 +18,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Path("/agents")
 public class AgentsController {
@@ -28,12 +32,15 @@ public class AgentsController {
     @EJB
     IRestClient restClient;
 
+    @EJB
+    private ConsoleEndpoint ws;
+
     @GET
     @Path("/classes")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgentTypes() {
 
-        List<AgentType> types = center.getAllTypes();
+        Set<AgentType> types = center.getAllTypes();
 
         return Response.ok(types).build();
     }
@@ -46,6 +53,8 @@ public class AgentsController {
         if (center.isMasterNode()) {
             String sender = "";
             types.forEach((k,v) -> center.getClusterTypesMap().put(k,v));
+
+            ws.sendMessage("Received agent types from slave node", MessageType.UPDATE_TYPES);
 
             for (String key : types.keySet()) {
                 sender = key;
@@ -100,6 +109,8 @@ public class AgentsController {
 
         center.addRunningAgents(running);
 
+        running.forEach(aid -> ws.agentStarted(aid.getName(), aid.getType().getName(), aid.getHost().getAlias()));
+
         return Response.ok().build();
     }
 
@@ -114,14 +125,20 @@ public class AgentsController {
 
         List<AgentType> hostTypes = center.getHostTypes();
 
-        String originCenterAddress = null;
+        String originCenterAddress= null;
         AgentI agent = null;
 
         if (hostTypes.contains(agentType)) {
             try {
+
                 agent = center.runAgent(agentType, name);
+
+                if (agent == null) {
+                    return Response.status(Response.Status.CONFLICT).entity("Agent with same AID already exists").build();
+                }
+
                 // Nadji centre koji nisu host agenta
-                List<AgentsCenter> toNotify = center.getRegisteredCenters();
+                Set<AgentsCenter> toNotify = center.getRegisteredCenters();
 
                 restClient.notifyAgentStarted(agent.getAid(), toNotify);
 
@@ -133,8 +150,8 @@ public class AgentsController {
             // Trazeni tip agenta ne postoji na hostu
 
             for (Map.Entry<String, List<AgentType>> pair : clusterTypesMap.entrySet()) {
-                if (pair.getValue().contains(type)) {
-                    originCenterAddress = (pair.getKey().split("@"))[0].trim();
+                if (pair.getValue().contains(agentType)) {
+                    originCenterAddress = (pair.getKey().split("@"))[1].trim();
                     break;
                 }
             }
@@ -143,12 +160,19 @@ public class AgentsController {
                 return Response.serverError().build();
             }
 
-            restClient.runRemoteAgent(originCenterAddress, type, name);
+            Response response = restClient.runRemoteAgent(originCenterAddress, type, name);
+
+            if (response.getStatus() == 409) {
+                return Response.status(Response.Status.CONFLICT).entity("Agent with same AID already exists").build();
+            }
+
+            // return Response.status(Response.Status.OK).build();
+
+            // agent = response.readEntity(AgentI.class);
 
         }
 
-
-        return Response.ok(agent).build();
+        return Response.status(Response.Status.OK).entity(agent).build();
     }
 
     @DELETE
@@ -164,26 +188,49 @@ public class AgentsController {
                 // Ne postoji trazeni agent
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            restClient.notifyAgentStopped(aid, center.getRegisteredCenters());
+            restClient.notifyAgentStopped(Arrays.asList(aid), center.getRegisteredCenters());
         } else {
             restClient.stopAgent(aid);
         }
 
-        return Response.ok().build();
+        return Response.ok(aid).build();
     }
 
     @DELETE
     @Path("/running/{aid}")
-    public Response stopAgent(@PathParam("aid") String aid) {
+    public Response stopAgent(@PathParam("aid") String aidStr) {
 
-        String[] parts = aid.split("\\.");
+        String[] parts = aidStr.split("\\.");
 
         String aidName = parts[0];
         String typeName = parts[1];
+        String moduleName = parts[2];
+        moduleName += "." + parts[3];
 
-        center.stopAgent(aidName, typeName);
+        AID aid = new AID(aidName, typeName, moduleName, center.getAgentsCenter());
+
+        boolean deleted = center.stopHostAgent(aid);
+        if (!deleted) {
+            // Ne postoji trazeni agent
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        restClient.notifyAgentStopped(Arrays.asList(aid), center.getRegisteredCenters());
 
         return Response.ok().build();
     }
+
+    @POST
+    @Path("/stopped")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response stoppedAgents (List<AID> stopped){
+
+        center.getRunningAgents().removeAll(stopped);
+
+        stopped.forEach(aid -> ws.agentStopped(aid.getName(), aid.getType().getName(), aid.getHost().getAlias()));
+
+        return Response.ok().build();
+    }
+
 
 }

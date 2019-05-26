@@ -26,8 +26,27 @@ export default {
     },
     created() {        
         axios.get(API + "/agents/running")
-            .then(res => this.running = res.data)
+            .then(res =>  {
+                this.running = res.data
+            })
             .catch(err => console.log(err))
+    },
+    methods: {
+        addRunningAgent(aid) {
+            this.running.push(aid)
+        },
+        removeRunningAgent(aid) {
+            axios.get(API + "/agents/running")
+                .then(res =>  {
+                    this.running = res.data
+                })
+                .catch(err => console.log(err))
+        },
+       updateAgents() {
+            axios.get(API + '/agents/running')
+                .then(res => this.running = res.data)
+                .catch(err => console.log(err))            
+        }
     }
 }
 </script>

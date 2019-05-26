@@ -2,7 +2,6 @@ package mongodb;
 
 import application.App;
 import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -65,35 +64,4 @@ public class MongoDB {
 
     }
 
-
-    public void test(String dbName) {
-        System.out.println("");
-
-        MongoDatabase db = client.getDatabase("agents_db");
-        db.getCollection("master");
-        db.getCollection("slave");
-        db.getCollection("nova");
-
-        //client.getDatabaseNames().forEach(System.out::println);
-
-        MongoCollection<org.bson.Document> masterCol = db.getCollection("master");
-        Document document = new Document();
-        document.put("name", "Shubhama");
-        document.put("company", "JCGA");
-        document.put("post_count", 21);
-        masterCol.insertOne(document);
-        System.out.println("Inserted document = " + document);
-
-        // Get all documents
-        Document searchQuery = new Document();
-        searchQuery.put("company", "JCGA");
-        searchQuery.put("company", "");
-
-
-        FindIterable<Document> documents = masterCol.find(searchQuery);
-
-        for (Document document1: documents) {
-            System.out.println(document1);
-        }
-    }
 }

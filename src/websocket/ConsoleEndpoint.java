@@ -16,13 +16,6 @@ import java.util.logging.Logger;
 @ServerEndpoint(value = "/soket")
 public class ConsoleEndpoint {
 
-    public enum MessageType {
-        NEW_TYPE,
-        NEW_AGENT,
-        STOP_AGENT,
-        CONSOLE
-    }
-
     private static final Logger logger = Logger.getLogger(ConsoleEndpoint.class.getName());
     //private Map<String, Session> sessions = new ConcurrentHashMap<>();
     private List<Session> sessions = new ArrayList<>();
@@ -54,12 +47,17 @@ public class ConsoleEndpoint {
         sessions.remove(session);
     }
 
+    public void sendMessage(String message) {
+
+        sendMessage(message, MessageType.CONSOLE);
+
+    }
+
     public void sendMessage(String message, MessageType type) {
         logger.log(Level.INFO, "Broadcasting message via websocket");
-        logger.log(Level.INFO, "Message type : " + type.toString());
         logger.log(Level.INFO, "Message content : " + message);
 
-        WSMessage wsMessage = new WSMessage(type, message);
+        WSMessage wsMessage = new WSMessage(message, type);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -74,8 +72,15 @@ public class ConsoleEndpoint {
         for (Session s : sessions) {
             s.getAsyncRemote().sendText(jsonMessage);
         }
-
-
     }
+
+    public void agentStopped(String name, String typeName, String centerName) {
+        sendMessage("Agent '" + name + "[" + typeName + "]" + "@" + centerName + "' stopped", MessageType.UPDATE_AGENTS);
+    }
+
+    public void agentStarted(String name, String typeName, String centerName) {
+        sendMessage("Agent '" + name + "[" + typeName + "]" + "@" + centerName + "' started", MessageType.UPDATE_AGENTS);
+    }
+
 
 }
