@@ -41,5 +41,11 @@ public class MDBConsumer implements MessageListener {
 
         center.deliverMessageToAgent(receivedMessage, aid);
 
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 }

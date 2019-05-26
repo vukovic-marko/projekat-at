@@ -12,7 +12,7 @@ import javax.ejb.Stateful;
 public class MojAutoCrawler extends Agent {
 
     @Override
-    public void handleMessage(ACLMessage message) {
+    protected void onMessage(ACLMessage message) {
 
         System.out.println("I crawl on mojauto.rs!");
 

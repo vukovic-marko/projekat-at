@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ACLMessage implements Serializable {
 
     private String replyWith;
     private String inReplyTo;
-    private String replyBy;
+    private Long replyBy;
 
     public ACLMessage () {
 
@@ -147,17 +148,23 @@ public class ACLMessage implements Serializable {
         inReplyTo = inreplyTo;
     }
 
-    public String getReplyBy() {
+    public Long getReplyBy() {
         return replyBy;
     }
 
-    public void setReplyBy(String replyBy) {
+    public void setReplyBy(Long replyBy) {
         this.replyBy = replyBy;
     }
 
     public void addReceiver(AID aid) {
 
-        List<AID> tempList = Arrays.asList( receivers );
+        List<AID> tempList;
+
+        if (receivers == null) {
+            tempList = new ArrayList<>();
+        } else {
+            tempList = Arrays.asList( receivers );
+        }
 
         tempList.add(aid);
 
@@ -174,6 +181,7 @@ public class ACLMessage implements Serializable {
     public ACLMessage makeReply(Performative performative) {
         if (!canReplyTo())
             throw new IllegalArgumentException("There's no-one to receive the reply.");
+
         ACLMessage reply = new ACLMessage(performative);
 
         reply.addReceiver(replyTo != null ? replyTo : sender);
@@ -185,7 +193,17 @@ public class ACLMessage implements Serializable {
         reply.protocol = protocol;
         reply.conversationId = conversationId;
         reply.inReplyTo = replyWith;
+
+        reply.userArgs = new HashMap<>();
+
         return reply;
     }
 
+    public void addReceivers(List<AID> agents) {
+
+        receivers = new AID[agents.size()];
+
+        receivers = agents.toArray(receivers);
+
+    }
 }

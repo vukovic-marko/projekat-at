@@ -1,4 +1,4 @@
-package agents.test;
+package agents.test.pingpong;
 
 import model.ACLMessage;
 import model.Agent;
@@ -15,9 +15,9 @@ public class Pong extends Agent {
     private int counter = 0;
 
     @Override
-    public void handleMessage(ACLMessage message) {
+    protected void onMessage(ACLMessage message) {
 
-        System.out.println("Hi from Pong!");
+        System.out.println("Agent " + aid.getName() + " [Pong] received a message!");
 
         if(message.getPerformative() == Performative.REQUEST) {
             ACLMessage reply = message.makeReply(Performative.INFORM);

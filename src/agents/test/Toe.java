@@ -12,7 +12,7 @@ import javax.ejb.Stateful;
 public class Toe extends Agent {
 
     @Override
-    public void handleMessage(ACLMessage message) {
+    protected void onMessage(ACLMessage message) {
 
         System.out.println("I'm Toe!");
     }

@@ -3,17 +3,17 @@ package controllers;
 import configuration.IAgentsCenterBean;
 import messaging.IMessenger;
 import model.ACLMessage;
-import model.AID;
-import model.AgentsCenter;
 import model.Performative;
 import mongodb.MongoDB;
 import restclient.IRestClient;
+import websocket.ConsoleEndpoint;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Path("/messages")
@@ -30,6 +30,9 @@ public class MessagesController {
     private IMessenger messenger;
 
     @EJB
+    private ConsoleEndpoint ws;
+
+    @EJB
     private MongoDB db;
 
     /**
@@ -42,21 +45,11 @@ public class MessagesController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response sendMessage(ACLMessage message) {
 
-        AID[] ids = message.getReceivers();
-
-        if (ids == null || ids.length==0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (message.getUserArgs() == null) {
+            message.setUserArgs(new HashMap<>());
         }
 
-        for (int i = 0; i < ids.length; i++) {
-            AID aid = ids[i];
-            AgentsCenter host = aid.getHost();
-            if (host.equals(center.getAgentsCenter())) {
-                messenger.sendMessageToAgent(message, aid, i);
-            } else {
-                restClient.sendMessageToCenter(message, host);
-            }
-        }
+        messenger.sendMessage(message);
 
         return Response.ok().build();
     }
@@ -87,6 +80,18 @@ public class MessagesController {
 
         return Response.ok(performativesList).build();
     }
+
+    @PUT
+    @Path("")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response websocketMessage(String message) {
+
+        ws.sendMessage(message);
+
+        return Response.status(Response.Status.OK).build();
+
+    }
+
 }
 
 

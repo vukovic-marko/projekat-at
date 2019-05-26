@@ -1,20 +1,18 @@
 package configuration;
 
-import agents.test.Ping;
+import agents.test.pingpong.Ping;
 import application.App;
 import model.*;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import restclient.IRestClient;
 import websocket.ConsoleEndpoint;
 import websocket.MessageType;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJB;
-import javax.ejb.Schedule;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.ejb.*;
 import javax.naming.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
@@ -27,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Singleton
 @Startup
+@Lock(LockType.READ)
 public class AgentsCenterBean implements IAgentsCenterBean {
 
     private AgentsCenter agentsCenter;
@@ -43,6 +42,9 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     @EJB
     private ConsoleEndpoint ws;
+
+    @EJB
+    private IRestClient restClient;
 
     @PostConstruct
     public void init() {
@@ -385,14 +387,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     @Override
     public void deliverMessageToAgent(ACLMessage message, AID aid) {
 
-        AgentI agent = null;
-
-        for (AID i : hostRunningAgents.keySet()) {
-            if (aid.equals(i)) {
-                agent = hostRunningAgents.get(i);
-                break;
-            }
-        }
+        AgentI agent = hostRunningAgents.get(aid);
 
         if (agent == null) {
             return;
@@ -496,6 +491,12 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
+    @Override
+    public void broadcastMessage(String wsMessage) {
+
+        restClient.broadcastMessage(wsMessage, getRegisteredCenters());
+
+    }
 
     //    /**
 //     * Funkcija koja pronalazi agenta zapisanog u notaciji alias@address, i vraca ga kao objekat tipa AgentsCenter.

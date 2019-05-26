@@ -179,6 +179,7 @@ public class AgentsController {
     // @Path("/running/{aid}")
     // public Response stopAgent(@PathParam("aid") String aid) {
     @Path("/running")
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response stopHostAgent(AID aid) {
 
         // Da li se zastavlja agent na hostu

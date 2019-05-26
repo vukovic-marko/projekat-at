@@ -8,6 +8,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Stateless;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Entity;
@@ -20,12 +22,23 @@ import java.util.Set;
 @Stateless
 public class RestClient implements IRestClient {
 
+    ResteasyClient client;
+
+    @PostConstruct
+    public void init() {
+        client = new ResteasyClientBuilder().build();
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        client.close();
+    }
+
     @Override
     public Response runRemoteAgent(String address, String type, String name) {
 
         Response retVal;
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.
                 target(address + "/agents/running/" +
                         type + "/" + name);
@@ -43,7 +56,6 @@ public class RestClient implements IRestClient {
         retVal = Response.status(response.getStatus()).entity(agent).build();
 
         response.close();
-        client.close();
 
         return retVal;
 
@@ -52,7 +64,6 @@ public class RestClient implements IRestClient {
     @Override
     public void notifyAgentStarted(AID aid, Set<AgentsCenter> toNotify) {
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter ac : toNotify) {
             ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/running");
 
@@ -60,13 +71,11 @@ public class RestClient implements IRestClient {
                     post(Entity.entity(Arrays.asList(aid), MediaType.APPLICATION_JSON));
             response.close();
         }
-        client.close();
     }
 
     @Override
     public void stopAgent(AID aid) {
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.target(aid.getHost().getAddress() +
                 "/agents/running/" + aid.getName() + "." + aid.getType().getName() + "." +
                 aid.getType().getModule());
@@ -77,13 +86,11 @@ public class RestClient implements IRestClient {
         Response response = target.request(MediaType.APPLICATION_JSON).delete();
 
         response.close();
-        client.close();
     }
 
     @Override
     public void notifyAgentStopped(List<AID> ids, Set<AgentsCenter> toNotify) {
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
         for (AgentsCenter ac : toNotify) {
             ResteasyWebTarget target = client.target(ac.getAddress() + "/agents/stopped");
 
@@ -91,19 +98,28 @@ public class RestClient implements IRestClient {
                     post(Entity.entity(ids, MediaType.APPLICATION_JSON));
             response.close();
         }
-        client.close();
     }
 
     @Override
     public void sendMessageToCenter(ACLMessage message, AgentsCenter center) {
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
         ResteasyWebTarget target = client.target(center.getAddress() + "/messages");
 
         Response response = target.request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(message, MediaType.APPLICATION_JSON));
         response.close();
-        client.close();
+
+    }
+
+    @Override
+    public void broadcastMessage(String wsMessage, Set<AgentsCenter> registeredCenters) {
+
+        for (AgentsCenter center : registeredCenters) {
+            ResteasyWebTarget target = client.target(center.getAddress() + "/messages");
+            Response response = target.request(MediaType.APPLICATION_JSON)
+                    .put(Entity.entity(wsMessage, MediaType.APPLICATION_JSON));
+            response.close();
+        }
 
     }
 

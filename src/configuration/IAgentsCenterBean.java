@@ -3,12 +3,15 @@ package configuration;
 import model.*;
 
 import javax.ejb.Local;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.naming.NamingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 @Local
+@Lock(LockType.READ)
 public interface IAgentsCenterBean {
 
     //private final String AGENTS_LOOKUP = "java:jboss/exported/projekat_at_war_exploded/";
@@ -42,4 +45,5 @@ public interface IAgentsCenterBean {
     Set<AgentType> getAllTypes();
     List<AgentType> getHostTypes();
 
+    void broadcastMessage(String wsMessage);
 }
