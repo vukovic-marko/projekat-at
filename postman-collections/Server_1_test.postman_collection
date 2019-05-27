@@ -197,6 +197,27 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Test websocket",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/ProjekatATWeb/messages/ws",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"ProjekatATWeb",
+						"messages",
+						"ws"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
