@@ -4,9 +4,7 @@ import model.*;
 
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Stateful
@@ -25,8 +23,6 @@ public class Ping extends Agent {
 
             agents = agents.stream().filter(aid -> aid.getType().getName().equals("Pong")).collect(Collectors.toList());
 
-            AID pongAid = new AID(message.getContent(), null, null);
-
             ACLMessage msgToPong = new ACLMessage(Performative.REQUEST);
             msgToPong.setSender(aid);
 
@@ -36,9 +32,9 @@ public class Ping extends Agent {
 
         } else if (message.getPerformative() == Performative.INFORM) {
 
-            Map<String, Object> args = new HashMap<>(message.getUserArgs());
-            args.put("pingCreatedOn", aid.getHost());
-            args.put("pingWorkingOn", aid.getHost());
+            // Map<String, Object> args = new HashMap<>(message.getUserArgs());
+            // args.put("pingCreatedOn", aid.getHost());
+            // args.put("pingWorkingOn", aid.getHost());
 
             Object counter = message.getUserArgs().get("pongCounter");
             Integer pongCounter;

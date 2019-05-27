@@ -8,8 +8,8 @@ import restclient.IRestClient;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import javax.annotation.Resource;
+import javax.ejb.*;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
@@ -33,6 +33,9 @@ public class Messenger implements IMessenger {
     @EJB
     private IRestClient restClient;
 
+    @Resource
+    private TimerService timerService;
+
     @PostConstruct
     public void init() {
         try {
@@ -53,7 +56,7 @@ public class Messenger implements IMessenger {
     }
 
     @Override
-    public void sendMessage(ACLMessage message) {
+    public void sendMessage(ACLMessage message, long delay) {
 
         AID[] ids = message.getReceivers();
 
@@ -67,7 +70,7 @@ public class Messenger implements IMessenger {
             AID aid = ids[i];
             AgentsCenter host = aid.getHost();
             if (host.equals(center.getAgentsCenter())) {
-                sendMessageToAgent(message, aid, i);
+                sendMessageToAgent(message, aid, i, delay);
             } else {
                 remoteDestinations.add(host);
             }
@@ -77,7 +80,12 @@ public class Messenger implements IMessenger {
     }
 
     @Override
-    public void sendMessageToAgent(ACLMessage message, AID aid, int index) {
+    public void sendMessage(ACLMessage message) {
+        sendMessage(message, 0L);
+    }
+
+    @Override
+    public void sendMessageToAgent(ACLMessage message, AID aid, int index, long delay) {
 
         ObjectMessage jmsMsg = null;
 
@@ -90,9 +98,30 @@ public class Messenger implements IMessenger {
             // jmsMsg.setStringProperty("_HQ_DUPL_ID", UUID.randomUUID().toString());
 
             // Slanje
-            producer.send(jmsMsg);
+            if (delay == 0) {
+                producer.send(jmsMsg);
+            } else {
+                timerService.createSingleActionTimer(delay, new TimerConfig(new JMSWrapper(jmsMsg), false));
+            }
+
         } catch (JMSException e) {
             e.printStackTrace();
         }
+    }
+
+    @Timeout
+    public void timeout(Timer timer) {
+
+        try {
+            JMSWrapper wrapper = (JMSWrapper) timer.getInfo();
+            ACLMessage message = wrapper.getMessage();
+            ObjectMessage jmsMsg = session.createObjectMessage(message);
+            jmsMsg.setStringProperty("GroupID", wrapper.getGroupId());
+            jmsMsg.setIntProperty("Index", wrapper.getIndex());
+            producer.send(jmsMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

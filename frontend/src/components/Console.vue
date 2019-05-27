@@ -1,6 +1,6 @@
 <template>
     <div class="console">
-        <span id="consoleTitle">Console output</span>
+        <span id="consoleTitle">Console output - <button v-on:click="clearConsole" class="btn btn-link">Clear</button> </span>
         <b-form-textarea
             id="textarea"
             v-model="consoleOutput"
@@ -17,8 +17,17 @@ export default {
       return {
         text: ""
       }
+    },
+    methods: {
+        clearConsole: function(e) {
+
+            this.$emit("clearConsole")
+        }
     }
 }
+
+
+
 </script>
 
 <style scoped>

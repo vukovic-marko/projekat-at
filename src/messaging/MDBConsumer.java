@@ -42,7 +42,8 @@ public class MDBConsumer implements MessageListener {
         center.deliverMessageToAgent(receivedMessage, aid);
 
         try {
-            Thread.sleep(100);
+            // Probano sa 100, izgledalo je da je dovoljno
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

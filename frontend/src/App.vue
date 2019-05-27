@@ -14,7 +14,7 @@
       </b-collapse>
     </b-navbar>
     <router-view ref="routerView" />
-    <Console id="console" :consoleOutput="consoleOutput" />
+    <Console id="console" :consoleOutput="consoleOutput" @clearConsole="consoleOutput=''" />
   </div>
 </template>
 
@@ -72,9 +72,6 @@ export default {
       }
 
     }
-
-
-
   },
   data() {
     return {
@@ -92,7 +89,6 @@ export default {
     this.socket.onclose = this.socket_closed;
     this.socket.onerror = this.socket_error;
     this.socket.onmessage = this.on_message;
-
   }
 
 }

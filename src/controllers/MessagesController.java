@@ -13,7 +13,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Path("/messages")
@@ -44,10 +43,6 @@ public class MessagesController {
     @Path("")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response sendMessage(ACLMessage message) {
-
-        if (message.getUserArgs() == null) {
-            message.setUserArgs(new HashMap<>());
-        }
 
         messenger.sendMessage(message);
 

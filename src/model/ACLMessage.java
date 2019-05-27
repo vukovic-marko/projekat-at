@@ -85,6 +85,9 @@ public class ACLMessage implements Serializable {
     }
 
     public HashMap<String, Object> getUserArgs() {
+        if (userArgs == null) {
+            userArgs = new HashMap<>();
+        }
         return userArgs;
     }
 

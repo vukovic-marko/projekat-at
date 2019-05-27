@@ -8,7 +8,8 @@ import javax.ejb.Local;
 public interface IMessenger {
 
     void sendMessage(ACLMessage message);
+    void sendMessage(ACLMessage message, long delay);
 
-    void sendMessageToAgent(ACLMessage message, AID aid, int index);
+    void sendMessageToAgent(ACLMessage message, AID aid, int index, long delay);
 
 }
