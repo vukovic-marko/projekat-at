@@ -20,7 +20,7 @@ public interface IRestClient {
 
     void notifyAgentStopped(List<AID> ids, Set<AgentsCenter> toNotify);
 
-    void sendMessageToCenter(ACLMessage message, AgentsCenter center);
+    void sendMessageToCenter(ACLMessage message, AgentsCenter center, Long delay);
 
     void broadcastMessage(String wsMessage, Set<AgentsCenter> registeredCenters);
 

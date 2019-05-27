@@ -36,11 +36,14 @@ public class Messenger implements IMessenger {
     @Resource
     private TimerService timerService;
 
+    private AgentsCenter agentsCenter;
+
     @PostConstruct
     public void init() {
         try {
             session = factory.getSession();
             producer = factory.getProducer(session);
+            agentsCenter = center.getAgentsCenter();
         } catch (JMSException e) {
             e.printStackTrace();
         }
@@ -69,14 +72,15 @@ public class Messenger implements IMessenger {
         for (int i = 0; i < ids.length; i++) {
             AID aid = ids[i];
             AgentsCenter host = aid.getHost();
-            if (host.equals(center.getAgentsCenter())) {
+            if (host.equals(agentsCenter)) {
                 sendMessageToAgent(message, aid, i, delay);
             } else {
                 remoteDestinations.add(host);
             }
         }
 
-        remoteDestinations.forEach(host -> restClient.sendMessageToCenter(message, host));
+        remoteDestinations.forEach(host -> restClient.sendMessageToCenter(message, host, delay));
+
     }
 
     @Override
@@ -107,6 +111,27 @@ public class Messenger implements IMessenger {
         } catch (JMSException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void activateHostAgents(ACLMessage message, Long delay) {
+
+        AID[] ids = message.getReceivers();
+
+        if (ids == null || ids.length==0) {
+            return;
+        }
+
+        Set<AgentsCenter> remoteDestinations = new HashSet<>();
+
+        for (int i = 0; i < ids.length; i++) {
+            AID aid = ids[i];
+            AgentsCenter host = aid.getHost();
+            if (host.equals(agentsCenter)) {
+                sendMessageToAgent(message, aid, i, delay);
+            }
+        }
+
     }
 
     @Timeout

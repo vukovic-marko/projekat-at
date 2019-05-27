@@ -4,10 +4,11 @@ import configuration.IAgentsCenterBean;
 import messaging.IMessenger;
 import websocket.ConsoleEndpoint;
 
-import javax.ejb.Remove;
-
 import javax.ejb.EJB;
+import javax.ejb.Remove;
 import javax.ejb.Stateful;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Stateful
 public abstract class Agent implements AgentI {
@@ -56,6 +57,34 @@ public abstract class Agent implements AgentI {
 
     protected void onTerminate() {
 
+    }
+
+    protected List<AID> getAgents(String type) {
+
+        List<AID> agents = null;
+
+        try {
+
+            agents = center.getRunningAgents();
+
+            agents = agents.stream().filter(aid -> aid.getType().getName().equals(type)).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return agents;
+    }
+
+    protected void broadcastInfo(String text) {
+
+        try {
+            String fullText = aid.getName() + "[" + aid.getType().getName() + "]@" + aid.getHost().getAlias() + " : " + text;
+            ws.sendMessage(fullText);
+            center.broadcastMessage(fullText);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected abstract void onMessage(ACLMessage message);

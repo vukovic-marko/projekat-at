@@ -43,7 +43,7 @@ export default {
         }
     },
     created() {
-        axios.get(API + '/agents/running')
+        axios.get(API + '/agents/running') 
             .then(res => this.running = res.data)
             .catch(err => console.log(err))
     },

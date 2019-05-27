@@ -399,19 +399,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         return false;
     }
 
-    @Override
-    public void deliverMessageToAgent(ACLMessage message, AID aid) {
-
-        AgentI agent = hostRunningAgents.get(aid);
-
-        if (agent == null) {
-            return;
-        }
-
-        agent.handleMessage(message);
-
-    }
-
     public Map<String, List<AgentType>> getClusterTypesMap() {
         return clusterTypesMap;
     }

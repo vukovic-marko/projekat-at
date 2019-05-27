@@ -3,6 +3,7 @@ package messaging;
 import configuration.IAgentsCenterBean;
 import model.ACLMessage;
 import model.AID;
+import model.AgentI;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
@@ -39,14 +40,19 @@ public class MDBConsumer implements MessageListener {
             e.printStackTrace();
         }
 
-        center.deliverMessageToAgent(receivedMessage, aid);
+        AgentI agent = center.getHostRunningAgents().get(aid);
 
-        try {
-            // Probano sa 100, izgledalo je da je dovoljno
-            Thread.sleep(50);
+        if (agent == null) {
+            return;
+        }
+
+        agent.handleMessage(receivedMessage);
+
+        /*try {
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
 
     }
 }

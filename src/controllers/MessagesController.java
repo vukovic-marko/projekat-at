@@ -87,6 +87,17 @@ public class MessagesController {
 
     }
 
+    @PUT
+    @Path("/redirect/{delay}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response redirectedMessage(@PathParam("delay") Long delay, ACLMessage message) {
+
+        messenger.activateHostAgents(message, delay);
+
+        return Response.status(Response.Status.OK).build();
+
+    }
+
 }
 
 

@@ -12,4 +12,5 @@ public interface IMessenger {
 
     void sendMessageToAgent(ACLMessage message, AID aid, int index, long delay);
 
+    void activateHostAgents(ACLMessage message, Long delay);
 }
