@@ -4,6 +4,8 @@ import configuration.IAgentsCenterBean;
 import messaging.IMessenger;
 import websocket.ConsoleEndpoint;
 
+import javax.ejb.Remove;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateful;
 
@@ -39,6 +41,21 @@ public abstract class Agent implements AgentI {
         } catch (Exception e) {
             e.getMessage();
         }
+    }
+
+    @Override
+    @Remove
+    public void stop() {
+        try {
+            onTerminate();
+            System.out.println("Agent destroyed");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void onTerminate() {
+
     }
 
     protected abstract void onMessage(ACLMessage message);

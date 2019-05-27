@@ -77,11 +77,13 @@ export default {
             axios.get(API + '/agents/running')
                 .then(res => this.running = res.data)
                 .catch(err => console.log(err))
+                .finally ( selectedAgent = "" )
         },
         updateAgents() {
             axios.get(API + '/agents/running')
                 .then(res => this.running = res.data)
-                .catch(err => console.log(err))            
+                .catch(err => console.log(err))
+                .finally ( selectedAgent = "" )   
         }
     }
 }

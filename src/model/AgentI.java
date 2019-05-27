@@ -8,6 +8,8 @@ public interface AgentI extends Serializable {
 
     void init(AID aid);
 
+    void stop();
+
     AID getAid();
 
 }

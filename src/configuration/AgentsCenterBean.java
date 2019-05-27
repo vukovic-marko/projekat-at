@@ -295,6 +295,11 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     @Override
+    public void setRunningAgents(List<AID> runningAgents) {
+        this.runningAgents = runningAgents;
+    }
+
+    @Override
     public List<String> traverse() {
 
         List<String> ret;
@@ -377,9 +382,13 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             return false;
         }
 
-        hostRunningAgents.remove(aid);
+        AgentI removed = hostRunningAgents.remove(aid);
 
-        ws.agentStopped(aid.getName(), aid.getType().getName(), agentsCenter.getAlias());
+        if (removed!=null) {
+            removed.stop();
+            ws.agentStopped(aid.getName(), aid.getType().getName(), agentsCenter.getAlias());
+            return false;
+        }
 
         return true;
     }
@@ -466,10 +475,12 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             clusterTypesMap.remove(key);
             ws.sendMessage("Node '" + key + "' left the cluster", MessageType.UPDATE_ALL);
 
-            // Izbacivanje agenata hosta koji je napustion klaster
+            // Izbacivanje agenata hosta koji je napustio klaster
             runningAgents = runningAgents.stream().filter(aid -> !aid.getHost().getAddress().equals(item.getAddress()) &&
                     !aid.getHost().getAlias().equals(item.getAlias())).collect(Collectors.toList());
 
+            // Suvisno je jer ce svaki centar prepoznati da mu se ne javlja onaj centar koji je napustio klaster
+            // restClient.notifyCenterLeft(key, registeredCenters);
 
         });
 

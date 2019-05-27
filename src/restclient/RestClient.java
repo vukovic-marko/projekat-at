@@ -123,5 +123,17 @@ public class RestClient implements IRestClient {
 
     }
 
+    // Suvisno je jer ce svaki centar prepoznati da mu se ne javlja onaj centar koji je napustio klaster
+    @Override
+    public void notifyCenterLeft(String key, Set<AgentsCenter> registeredCenters) {
+
+        for (AgentsCenter center : registeredCenters) {
+            ResteasyWebTarget target = client.target(center.getAddress() + "/center/" + key);
+            Response response = target.request(MediaType.APPLICATION_JSON)
+                    .delete();
+            response.close();
+        }
+    }
+
 }
 

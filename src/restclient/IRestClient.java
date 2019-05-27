@@ -23,4 +23,6 @@ public interface IRestClient {
     void sendMessageToCenter(ACLMessage message, AgentsCenter center);
 
     void broadcastMessage(String wsMessage, Set<AgentsCenter> registeredCenters);
+
+    void notifyCenterLeft(String key, Set<AgentsCenter> registeredCenters);
 }

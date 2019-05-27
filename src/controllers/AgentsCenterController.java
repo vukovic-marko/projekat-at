@@ -6,6 +6,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import websocket.ConsoleEndpoint;
+import websocket.MessageType;
 
 import javax.ejb.EJB;
 import javax.ws.rs.*;
@@ -13,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/")
 public class AgentsCenterController {
@@ -93,6 +95,31 @@ public class AgentsCenterController {
         return Response.ok().build();
     }
 
+    // Suvisno je jer ce svaki centar prepoznati da mu se ne javlja onaj centar koji je napustio klaster
+    @DELETE
+    @Path("center/{key}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeCenter(@PathParam("key") String centerKey) {
+
+        String[] parts = centerKey.split("@");
+
+        String alias = parts[0];
+        String address = parts[1];
+
+        AgentsCenter tempCenter = new AgentsCenter(address, alias);
+
+        center.getRegisteredCenters().remove(tempCenter);
+
+        center.getClusterTypesMap().remove(centerKey);
+
+        center.setRunningAgents(center.getRunningAgents().stream()
+                .filter(aid -> !aid.getHost().equals(tempCenter))
+                .collect(Collectors.toList()));
+
+        ws.sendMessage("Node '" + centerKey + "' left the cluster", MessageType.UPDATE_ALL);
+
+        return Response.status(Response.Status.OK).build();
+    }
 
     @GET
     @Path("/nodes")

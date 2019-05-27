@@ -83,7 +83,6 @@ export default {
                     if (err.response) {
                         alert(err.response.data)
                     }
-                    
                 })
                 .finally ( this.btnEnabled = true )
         },
@@ -91,6 +90,7 @@ export default {
             axios.get(API + '/agents/classes')
                 .then(res => this.types = res.data)
                 .catch(err => console.log(err))
+                .finally ( selectedAgent = "" )
         }
     }
 }
