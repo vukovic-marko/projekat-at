@@ -54,6 +54,9 @@ public class AgentsCenterController {
         } else {
             center.getRegisteredCenters().add(agentsCenter);
 
+            ws.sendMessage("Added center '" + agentsCenter.getAlias() + "@" +
+                    agentsCenter.getAddress() + "'");
+
             return Response.ok().build();
 
         }

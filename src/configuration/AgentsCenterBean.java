@@ -21,11 +21,13 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Singleton
 @Startup
 @Lock(LockType.READ)
+@AccessTimeout(value = 60, unit = TimeUnit.SECONDS)
 public class AgentsCenterBean implements IAgentsCenterBean {
 
     private AgentsCenter agentsCenter;
@@ -110,6 +112,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                     response.close();
 
+                    System.out.println("Established connection with master node at " + masterAddress);
                     ws.sendMessage("Established connection with master node at " + masterAddress);
 
                     // slanje zahteva master cvoru za dobijanje mape svih agentskih cvorova
@@ -129,12 +132,14 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     response = target.request(MediaType.APPLICATION_JSON)
                             .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
 
+                    System.out.println("Host agent types sent");
                     ws.sendMessage("Host agent types sent");
 
                     clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>(){});
 
                     response.close();
 
+                    System.out.println("Received nodes list and agent types from master node");
                     ws.sendMessage("Received nodes list and agent types from master node");
 
                     // slanje zahteva master cvoru za dobijanje liste svih pokrenutih agenata u mreze
@@ -151,6 +156,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
                     client.close();
 
+                    System.out.println("Received running agents list from master node");
                     ws.sendMessage("Received running agents list from master node");
                 }
             } else {
@@ -203,9 +209,9 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         this.masterNode = masterNode;
     }
 
-    public void addToRegisteredCenters(List<AgentsCenter> list) {
+    /*public void addToRegisteredCenters(List<AgentsCenter> list) {
         this.registeredCenters.addAll(list);
-    }
+    }*/
 
     private Context createContext() throws NamingException {
         Hashtable<String, Object> jndiProps = new Hashtable<>();
@@ -387,10 +393,10 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         if (removed!=null) {
             removed.stop();
             ws.agentStopped(aid.getName(), aid.getType().getName(), agentsCenter.getAlias());
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override

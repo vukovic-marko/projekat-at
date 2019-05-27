@@ -54,7 +54,7 @@ public class AgentsController {
             String sender = "";
             types.forEach((k,v) -> center.getClusterTypesMap().put(k,v));
 
-            ws.sendMessage("Received agent types from slave node", MessageType.UPDATE_TYPES);
+            ws.sendMessage("Received agent types from new slave node" , MessageType.UPDATE_TYPES);
 
             for (String key : types.keySet()) {
                 sender = key;
@@ -80,6 +80,8 @@ public class AgentsController {
             return Response.ok(temp).build();
         } else {
             center.setClusterTypesMap(types);
+
+            ws.sendMessage("Received agent types that new node supports ", MessageType.UPDATE_TYPES);
 
             return Response.ok(null).build();
         }

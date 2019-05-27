@@ -90,7 +90,7 @@ export default {
             axios.get(API + '/agents/classes')
                 .then(res => this.types = res.data)
                 .catch(err => console.log(err))
-                .finally ( selectedAgent = "" )
+                //.finally ( this.selectedType = "" )
         }
     }
 }

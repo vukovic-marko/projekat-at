@@ -23,7 +23,7 @@ public interface IAgentsCenterBean {
     //AgentsCenter getAgentsCenter();
     Set<AgentsCenter> getRegisteredCenters();
     Boolean isMasterNode();
-    void addToRegisteredCenters(List<AgentsCenter> list);
+    //void addToRegisteredCenters(List<AgentsCenter> list);
 
     List<AgentType> getAvaliableAgentTypes() throws NamingException;
     List<AID> getRunningAgents();
