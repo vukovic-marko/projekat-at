@@ -8,6 +8,7 @@ import javax.ejb.EJB;
 import javax.ejb.Remove;
 import javax.ejb.Stateful;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Stateful
@@ -32,6 +33,20 @@ public abstract class Agent implements AgentI {
     @Override
     public void init(AID aid) {
         this.aid = aid;
+    }
+
+    @Override
+    public void init(AID aid, Map<String, String> args) {
+        this.aid = aid;
+        try {
+            initArgs(args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void initArgs(Map<String, String> args) {
+
     }
 
     // Znacajno jer se stateful bean brise ako neka njgova metoda baci izuzetak

@@ -85,7 +85,7 @@ public class Messenger implements IMessenger {
 
     @Override
     public void sendMessage(ACLMessage message) {
-        sendMessage(message, 0L);
+        sendMessage(message, 0);
     }
 
     @Override

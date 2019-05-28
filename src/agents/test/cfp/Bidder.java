@@ -63,6 +63,7 @@ public class Bidder extends Agent {
                 msg.setSender(aid);
 
                 msg.addReceiver(message.getReplyTo());
+                msg.addReceiver(message.getSender());
                 msg.setContent(result + "");
 
                 wsMessage = "Agent '" + aid.getName() + "@" + aid.getHost().getAlias() +

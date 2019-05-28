@@ -1,6 +1,8 @@
 package model;
 
+import javax.ejb.Remove;
 import java.io.Serializable;
+import java.util.Map;
 
 public interface AgentI extends Serializable {
 
@@ -8,6 +10,9 @@ public interface AgentI extends Serializable {
 
     void init(AID aid);
 
+    void init(AID aid, Map<String, String> args);
+
+    @Remove
     void stop();
 
     AID getAid();

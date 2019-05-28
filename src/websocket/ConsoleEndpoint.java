@@ -53,18 +53,14 @@ public class ConsoleEndpoint {
 
     }
 
-    public void sendMessage(String message, MessageType type) {
-        logger.log(Level.INFO, "Broadcasting message via websocket");
-        logger.log(Level.INFO, "Message content : " + message);
-
-        WSMessage wsMessage = new WSMessage(message, type);
+    public void sendWSMessage(WSMessage message) {
 
         ObjectMapper mapper = new ObjectMapper();
 
         String jsonMessage = null;
 
         try {
-            jsonMessage = mapper.writeValueAsString(wsMessage);
+            jsonMessage = mapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -72,6 +68,16 @@ public class ConsoleEndpoint {
         for (Session s : sessions) {
             s.getAsyncRemote().sendText(jsonMessage);
         }
+
+    }
+
+    public void sendMessage(String message, MessageType type) {
+        logger.log(Level.INFO, "Broadcasting message via websocket");
+        logger.log(Level.INFO, "Message content : " + message);
+
+        WSMessage wsMessage = new WSMessage(message, type);
+
+        sendWSMessage(wsMessage);
     }
 
     public void agentStopped(String name, String typeName, String centerName) {

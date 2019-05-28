@@ -5,6 +5,7 @@ public enum MessageType {
     UPDATE_TYPES,
     UPDATE_AGENTS,
     UPDATE_ALL,
+    RESULTS
 }
 
 
