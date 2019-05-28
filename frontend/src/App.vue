@@ -9,6 +9,7 @@
         <b-navbar-nav>
           <b-nav-item to="/">Agents</b-nav-item>
           <b-nav-item to="/messaging">Messaging</b-nav-item>
+          <b-nav-item to="/search">Search</b-nav-item>  
           <b-nav-item to="/explore">Explore</b-nav-item>
         </b-navbar-nav>
       </b-collapse>
@@ -63,10 +64,8 @@ export default {
       } else if (msg.type === "UPDATE_ALL") {
         this.$refs.routerView.updateTypes()
         this.$refs.routerView.updateAgents()
-      } else if (msg.type === "STOP_AGENT") {
+      } else if (msg.type === "RESULTS") {
 
-      } else if (msg.type === "NEW_CENTER") {
-        
       } else {
         alert("Unknown message type")
       }
