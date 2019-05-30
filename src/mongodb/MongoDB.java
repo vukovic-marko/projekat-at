@@ -4,6 +4,7 @@ import application.App;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import model.Car;
 import org.bson.Document;
 
 import javax.annotation.PostConstruct;
@@ -14,13 +15,15 @@ import java.io.InputStream;
 import java.util.Properties;
 
 @Singleton
-public class MongoDB {
+public class MongoDB implements IMongoDB {
 
     private MongoClient client;
     private MongoDatabase db;
 
     @PostConstruct
     public void init() {
+
+        System.out.println("initializing db bean");
 
         InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties");
         Properties props = new Properties();
@@ -64,4 +67,40 @@ public class MongoDB {
 
     }
 
+    @Override
+    public MongoDatabase getDb() {
+        return db;
+    }
+
+    @Override
+    public Car documentToCar(Document document) {
+        Car car = new Car();
+        car.setId(document.getString("id"));
+        car.setModel(document.getString("model"));
+        car.setYear(document.getInteger("year"));
+        car.setPrice(document.getDouble("price"));
+        car.setCubicCapacity(document.getInteger("cubicCapacity"));
+        car.setFuel(document.getString("fuel"));
+        car.setNumberOfSeats(document.getInteger("numberOfSeats"));
+        car.setDoorCount(document.getString("doorCount"));
+        car.setColor(document.getString("color"));
+
+        return car;
+    }
+
+    @Override
+    public Document carToDocument(Car car) {
+        Document document = new Document();
+        document.put("id", car.getId());
+        document.put("model", car.getModel());
+        document.put("year", car.getYear());
+        document.put("price", car.getPrice());
+        document.put("cubicCapacity", car.getCubicCapacity());
+        document.put("fuel", car.getFuel());
+        document.put("numberOfSeats", car.getNumberOfSeats());
+        document.put("doorCount", car.getDoorCount());
+        document.put("color", car.getColor());
+
+        return document;
+    }
 }

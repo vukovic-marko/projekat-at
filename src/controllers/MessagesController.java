@@ -4,7 +4,7 @@ import configuration.IAgentsCenterBean;
 import messaging.IMessenger;
 import model.ACLMessage;
 import model.Performative;
-import mongodb.MongoDB;
+import mongodb.IMongoDB;
 import restclient.IRestClient;
 import websocket.ConsoleEndpoint;
 
@@ -32,7 +32,7 @@ public class MessagesController {
     private ConsoleEndpoint ws;
 
     @EJB
-    private MongoDB db;
+    private IMongoDB db;
 
     /**
      *
