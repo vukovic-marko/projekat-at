@@ -24,7 +24,7 @@ public class Miner extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-
+        broadcastInfo("Received message: " + message);
 
     }
 }

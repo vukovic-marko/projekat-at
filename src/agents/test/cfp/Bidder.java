@@ -15,7 +15,8 @@ public class Bidder extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        System.out.println("Agent " + aid.getName() + " [Bidder] received a message!");
+        //System.out.println("Agent " + aid.getName() + " [Bidder] received a message!");
+        broadcastInfo("Received message: " + message);
         if (message.getPerformative() == Performative.CFP) {
 
             double rand = Math.random();

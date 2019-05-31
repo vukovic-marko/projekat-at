@@ -13,7 +13,8 @@ public class Tic extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        broadcastInfo("Agent " + aid + " [Tic] received a message");
+        //broadcastInfo("Agent " + aid + " [Tic] received a message");
+        broadcastInfo("Received message: " + message);
 
         if (!message.getLanguage().equals("ttt")) {
             broadcastInfo("I don't speak your language");

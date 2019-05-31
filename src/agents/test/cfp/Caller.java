@@ -20,7 +20,8 @@ public class Caller extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        System.out.println("Agent " + aid.getName() + " [Caller] received a message!");
+        //System.out.println("Agent " + aid.getName() + " [Caller] received a message!");
+        broadcastInfo("Received message: " + message);
         //if (message.getPerformative() == Performative.CFP && message.getContent().trim().toLowerCase().equals("start")) {
         if (message.getPerformative() == Performative.CFP) {
 

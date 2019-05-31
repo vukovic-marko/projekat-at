@@ -21,6 +21,7 @@ public class MojAutoCrawler extends CrawlerAgent {
     protected void onMessage(ACLMessage message) {
 
         System.out.println("I crawl on mojauto.rs!");
+        broadcastInfo("Received message: " + message);
 
     }
 }

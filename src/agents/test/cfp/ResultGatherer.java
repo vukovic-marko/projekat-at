@@ -16,7 +16,8 @@ public class ResultGatherer extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        System.out.println("Agent " + aid.getName() + " [ResultGatherer] received a message!");
+        //System.out.println("Agent " + aid.getName() + " [ResultGatherer] received a message!");
+        broadcastInfo("Received message: " + message);
         if (message.getPerformative() == Performative.INFORM) {
 
             Integer result = Integer.parseInt(message.getContent());

@@ -15,7 +15,8 @@ public class Toe extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        broadcastInfo("Agent " + aid + " [Toe] received a message");
+        //broadcastInfo("Agent " + aid + " [Toe] received a message");
+        broadcastInfo("Received message: " + message);
 
         if (!message.getLanguage().equals("ttt")) {
             broadcastInfo("I don't speak your language");

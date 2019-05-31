@@ -20,7 +20,6 @@ public class ACLMessage implements Serializable {
     private String language;
     private String encoding;
     private String ontology;
-
     private String protocol;
     private String conversationId;
 
@@ -209,4 +208,28 @@ public class ACLMessage implements Serializable {
         receivers = agents.toArray(receivers);
 
     }
+
+    @Override
+    public String toString() {
+
+        String retVal = "\nPerformative: " + performative;
+        retVal += (sender!=null)?"\nSender: "+sender.getName():"";
+        retVal += (replyTo!=null && !replyTo.equals(""))?"\nReply to: "+replyTo.getName():"";
+        retVal += (content!=null && !content.equals(""))?"\nContent: "+content:"";
+
+        retVal += (language!=null && !language.equals(""))?"\nLanguage: "+language:"";
+        retVal += (encoding!=null && !encoding.equals(""))?"\nEncoding: "+encoding:"";
+        retVal += (protocol!=null && !protocol.equals(""))?"\nProtocol: "+protocol:"";
+        retVal += (ontology!=null && !ontology.equals(""))?"\nOntology: "+ontology:"";
+
+        retVal += (conversationId!=null && !conversationId.equals(""))?"\nConversation ID: "+conversationId:"";
+
+        retVal += (replyWith!=null && !replyWith.equals(""))?"\nReply with: "+replyWith:"";
+        retVal += (inReplyTo!=null && !inReplyTo.equals(""))?"\nIn reply to: "+inReplyTo:"";
+        retVal += (replyBy!=null)?"\n"+replyBy:"";
+
+        return retVal;
+
+    }
+
 }

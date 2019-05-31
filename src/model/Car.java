@@ -5,6 +5,8 @@ import java.io.Serializable;
 public class Car implements Serializable {
 
     private String id;
+    private String manufacturer;
+    private String link;
     private String model;
     private Integer year;
     private Double price;
@@ -13,6 +15,7 @@ public class Car implements Serializable {
     private Integer numberOfSeats;
     private String doorCount;
     private String color;
+    private String heading;
 
     public String getId() {
         return id;
@@ -84,5 +87,29 @@ public class Car implements Serializable {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public String getHeading() {
+        return heading;
+    }
+
+    public void setHeading(String heading) {
+        this.heading = heading;
     }
 }

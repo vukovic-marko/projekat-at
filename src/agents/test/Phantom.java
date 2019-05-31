@@ -15,6 +15,7 @@ public class Phantom extends Agent {
     protected void onMessage(ACLMessage message) {
 
         System.out.println("Hello from the shadows");
+        broadcastInfo("Received message: " + message);
 
     }
 }

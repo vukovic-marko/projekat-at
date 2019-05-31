@@ -21,6 +21,7 @@ public class MobileCrawler extends CrawlerAgent {
     protected void onMessage(ACLMessage message) {
 
         System.out.println("I crawl on mobile.de!");
+        broadcastInfo("Received message: " + message);
 
     }
 }

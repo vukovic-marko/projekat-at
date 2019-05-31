@@ -12,6 +12,7 @@ import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 @Singleton
@@ -19,6 +20,7 @@ public class MongoDB implements IMongoDB {
 
     private MongoClient client;
     private MongoDatabase db;
+    private List<String> collections;
 
     @PostConstruct
     public void init() {
@@ -85,6 +87,10 @@ public class MongoDB implements IMongoDB {
         car.setDoorCount(document.getString("doorCount"));
         car.setColor(document.getString("color"));
 
+        car.setHeading(document.getString("heading"));
+        car.setManufacturer(document.getString("manufacturer"));
+        car.setLink(document.getString("link"));
+
         return car;
     }
 
@@ -100,6 +106,10 @@ public class MongoDB implements IMongoDB {
         document.put("numberOfSeats", car.getNumberOfSeats());
         document.put("doorCount", car.getDoorCount());
         document.put("color", car.getColor());
+
+        document.put("heading", car.getHeading());
+        document.put("manufacturer", car.getManufacturer());
+        document.put("link", car.getLink());
 
         return document;
     }

@@ -1,23 +1,17 @@
 package agents.crawlers;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import model.ACLMessage;
 import model.AgentI;
 import model.Car;
-import mongodb.IMongoDB;
-import org.bson.BSON;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,7 +37,8 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
         visited = new HashSet<>();
         cars = new HashMap<>();
 
-        System.out.println("I crawl on polovniautomobili.com!");
+        //System.out.println("I crawl on polovniautomobili.com!");
+        broadcastInfo("Received message: " + message);
         ws.sendMessage("started crawling on polovniautomobili.com");
 
         visitPage("https://www.polovniautomobili.com/", 0);
@@ -86,8 +81,16 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                 Elements links = document.select("a");
 
                 if (url.matches("https://www.polovniautomobili.com/auto-oglasi/[0-9]+/.+")) {
-                    String model = document.select("h1").first().ownText();
+                    String heading = document.select("h1").first().ownText();
                     Integer yearsOld;
+
+                    Element dataSection = document.select(".side-price-padding-left-10").first();
+                    dataSection = dataSection.select("section").first();
+
+                    dataSection = dataSection.child(1);
+
+                    String manufacturer = dataSection.child(3).ownText();
+                    String model = dataSection.child(5).ownText();
 
                     try {
                         yearsOld = Integer.valueOf(document.select("h1 small").first().text().split("\\.")[0]);
@@ -196,6 +199,8 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         Car car = new Car();
                         car.setId(id);
                         car.setModel(model);
+                        car.setManufacturer(manufacturer);
+                        car.setHeading(heading);
                         car.setYear(yearsOld);
                         car.setNumberOfSeats(numberOfSeats);
                         car.setDoorCount(doorCount);
@@ -203,6 +208,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         car.setColor(color);
                         car.setFuel(fuel);
                         car.setPrice(price);
+                        car.setLink(url);
                         cars.put(id, car);
                         System.out.println(cars.size());
                     }

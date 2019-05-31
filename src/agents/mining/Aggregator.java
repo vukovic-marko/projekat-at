@@ -29,8 +29,7 @@ public class Aggregator extends Agent {
     @Override
     protected void onMessage(ACLMessage message) {
 
-        System.out.println("I collect data from miners");
-        broadcastInfo("Aggregator received a message");
+        broadcastInfo("Received message: " + message);
 
         if (message.getPerformative() == Performative.REQUEST) {
 
