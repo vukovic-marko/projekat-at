@@ -68,7 +68,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
             !url.endsWith("#") && !url.contains("navigation-bar") &&
             !url.contains("/prati-oglas/") && !url.contains("?evaluate=")) {
 
-//            if (cars.size() == 25)
+//            if (cars.size() == 250)
 //                return;
 
             try {
@@ -210,7 +210,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         car.setPrice(price);
                         car.setLink(url);
                         cars.put(id, car);
-                        System.out.println(cars.size());
+//                        System.out.println(cars.size());
                     }
 
                 }
