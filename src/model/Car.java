@@ -17,6 +17,9 @@ public class Car implements Serializable {
     private String color;
     private String heading;
 
+    private Integer horsepower;
+    private Double mileage;
+
     public String getId() {
         return id;
     }
@@ -111,5 +114,21 @@ public class Car implements Serializable {
 
     public void setHeading(String heading) {
         this.heading = heading;
+    }
+
+    public Integer getHorsepower() {
+        return horsepower;
+    }
+
+    public void setHorsepower(Integer horsepower) {
+        this.horsepower = horsepower;
+    }
+
+    public Double getMileage() {
+        return mileage;
+    }
+
+    public void setMileage(Double mileage) {
+        this.mileage = mileage;
     }
 }

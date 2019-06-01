@@ -1,7 +1,6 @@
 package agents.crawlers;
 
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import model.ACLMessage;
 import model.AgentI;
 import model.Car;
@@ -21,7 +20,7 @@ import java.util.Set;
 @Remote(AgentI.class)
 public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
-    private static final Integer MAX_DEPTH = 4;
+    private static final Integer MAX_DEPTH = 1;
     private Map<String, Car> cars;
     private Set<String> visited;
 
@@ -43,14 +42,21 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
         visitPage("https://www.polovniautomobili.com/", 0);
 
-        MongoDatabase db = mongoDB.getDb();
-        db.getCollection("polovni-automobili").drop(); // TODO change collection name, use initArgs[35]
+        //MongoDatabase db = mongoDB.getDb();
+        //db.getCollection("polovni-automobili").drop(); // TODO change collection name, use initArgs[35]
 
+        //MongoCollection<org.bson.Document> coll = db.getCollection("polovni-automobili");
 
-        MongoCollection<org.bson.Document> coll = db.getCollection("polovni-automobili");
+        MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection("polovni-automobili.crw");
+
+        cars.put("1", new Car());
 
         cars.forEach((k,v) -> {
-            coll.insertOne(mongoDB.carToDocument(v));
+            try {
+                collection.insertOne(mongoDB.carToDocument(v));
+            } catch (Exception e) {
+                // just continue
+            }
         });
 
         ws.sendMessage("finished crawling");
@@ -91,6 +97,19 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
                     String manufacturer = dataSection.child(3).ownText();
                     String model = dataSection.child(5).ownText();
+
+                    String mileageStr = dataSection.child(9).ownText();
+                    mileageStr = mileageStr.substring(0, mileageStr.indexOf("km")).trim();
+                    mileageStr = mileageStr.replaceAll("\\.", "");
+                    Double mileage = Double.parseDouble(mileageStr);
+
+                    String ccStr = dataSection.child(15).ownText();
+                    ccStr = ccStr.substring(0, ccStr.indexOf("cm")).trim();
+                    Integer cc = Integer.parseInt(ccStr);
+
+                    String powerStr = dataSection.child(17).ownText();
+                    powerStr = powerStr.substring(powerStr.indexOf("/") + 1, powerStr.indexOf(" "));
+                    Integer power = Integer.parseInt(powerStr);
 
                     try {
                         yearsOld = Integer.valueOf(document.select("h1 small").first().text().split("\\.")[0]);
@@ -204,13 +223,15 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         car.setYear(yearsOld);
                         car.setNumberOfSeats(numberOfSeats);
                         car.setDoorCount(doorCount);
-                        car.setCubicCapacity(cubicCapacity);
+                        car.setCubicCapacity(cc);
                         car.setColor(color);
                         car.setFuel(fuel);
                         car.setPrice(price);
                         car.setLink(url);
+                        car.setHorsepower(power);
+                        car.setMileage(mileage);
                         cars.put(id, car);
-                        System.out.println(cars.size());
+                        System.out.println(cars.size() + "[" + depth + "]");
                     }
 
                 }

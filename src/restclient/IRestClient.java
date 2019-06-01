@@ -25,4 +25,6 @@ public interface IRestClient {
     void broadcastMessage(String wsMessage, Set<AgentsCenter> registeredCenters);
 
     void notifyCenterLeft(String key, Set<AgentsCenter> registeredCenters);
+
+    void centerShuttingDown(AgentsCenter agentsCenter, Set<AgentsCenter> toNotify);
 }

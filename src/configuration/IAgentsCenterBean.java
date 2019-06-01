@@ -45,4 +45,6 @@ public interface IAgentsCenterBean {
     List<AgentType> getHostTypes();
 
     void broadcastMessage(String wsMessage);
+
+    AgentsCenter deleteByAlias(String alias);
 }

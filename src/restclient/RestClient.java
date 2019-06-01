@@ -155,5 +155,19 @@ public class RestClient implements IRestClient {
         }
     }
 
+    @Override
+    public void centerShuttingDown(AgentsCenter agentsCenter, Set<AgentsCenter> toNotify) {
+
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        for (AgentsCenter center : toNotify) {
+            String path = center.getAddress() +
+                    "/center/" + agentsCenter.getAlias();
+            ResteasyWebTarget target = client.target(path);
+            Response response = target.request().delete();
+            response.close();
+        }
+
+        client.close();
+    }
 }
 

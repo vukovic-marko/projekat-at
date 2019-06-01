@@ -5,6 +5,7 @@ import model.AgentsCenter;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import restclient.IRestClient;
 import websocket.ConsoleEndpoint;
 import websocket.MessageType;
 
@@ -24,6 +25,9 @@ public class AgentsCenterController {
 
     @EJB
     private IAgentsCenterBean center;
+
+    @EJB
+    private IRestClient restClient;
 
     @GET
     @Path("/node")
@@ -100,18 +104,12 @@ public class AgentsCenterController {
 
     // Suvisno je jer ce svaki centar prepoznati da mu se ne javlja onaj centar koji je napustio klaster
     @DELETE
-    @Path("center/{key}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response removeCenter(@PathParam("key") String centerKey) {
+    @Path("center/{alias}")
+    public Response removeCenter(@PathParam("alias") String alias) {
 
-        String[] parts = centerKey.split("@");
+        AgentsCenter tempCenter = center.deleteByAlias(alias);
 
-        String alias = parts[0];
-        String address = parts[1];
-
-        AgentsCenter tempCenter = new AgentsCenter(address, alias);
-
-        center.getRegisteredCenters().remove(tempCenter);
+        String centerKey = tempCenter.getAlias() + "@" + tempCenter.getAddress();
 
         center.getClusterTypesMap().remove(centerKey);
 
@@ -119,7 +117,9 @@ public class AgentsCenterController {
                 .filter(aid -> !aid.getHost().equals(tempCenter))
                 .collect(Collectors.toList()));
 
-        ws.sendMessage("Node '" + centerKey + "' left the cluster", MessageType.UPDATE_ALL);
+        ws.sendMessage("Node '" + center.getAgentsCenter().getAlias() +
+                "@" + center.getAgentsCenter().getAddress() + "' removed '" + centerKey + "'",
+                MessageType.UPDATE_ALL);
 
         return Response.status(Response.Status.OK).build();
     }
@@ -130,4 +130,31 @@ public class AgentsCenterController {
     public Response getNodes() {
         return Response.ok(center.getRegisteredCenters()).build();
     }
+
+    @DELETE
+    @Path("")
+    public void stopApp() {
+
+        ws.sendMessage("Node " + center.getAgentsCenter().getAlias() + "@" +
+                center.getAgentsCenter().getAddress() + " shutting down in 5 seconds");
+        restClient.broadcastMessage("Node " + center.getAgentsCenter().getAlias() + "@" +
+                center.getAgentsCenter().getAddress() + " shutting down in 5 seconds", center.getRegisteredCenters());
+
+        restClient.centerShuttingDown(center.getAgentsCenter(), center.getRegisteredCenters());
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ws.sendMessage("Node " + center.getAgentsCenter().getAlias() + "@" +
+                center.getAgentsCenter().getAddress() + " left the cluster");
+        restClient.broadcastMessage("Node " + center.getAgentsCenter().getAlias() + "@" +
+                center.getAgentsCenter().getAddress() + " left the cluster", center.getRegisteredCenters());
+
+        System.exit(0);
+
+    }
+
 }

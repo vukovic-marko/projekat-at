@@ -502,6 +502,19 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     }
 
+    @Override
+    public AgentsCenter deleteByAlias(String alias) {
+
+        for (AgentsCenter ac : registeredCenters) {
+            if (ac.getAlias().equals(alias)) {
+                registeredCenters.remove(ac);
+                return ac;
+            }
+        }
+
+        return null;
+    }
+
     //    /**
 //     * Funkcija koja pronalazi agenta zapisanog u notaciji alias@address, i vraca ga kao objekat tipa AgentsCenter.
 //     *

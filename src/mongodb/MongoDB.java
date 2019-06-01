@@ -12,15 +12,16 @@ import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 @Singleton
 public class MongoDB implements IMongoDB {
 
     private MongoClient client;
     private MongoDatabase db;
-    private List<String> collections;
+    private Set<String> collections;
 
     @PostConstruct
     public void init() {
@@ -50,6 +51,8 @@ public class MongoDB implements IMongoDB {
 
         db = client.getDatabase(dbName);
 
+        collections = new HashSet<>();
+
     }
 
     @PreDestroy
@@ -57,7 +60,8 @@ public class MongoDB implements IMongoDB {
         client.close();
     }
 
-    public void addDocument(String databaseName, String collectionName, Document document) {
+    @Override
+    public void addDocument(String collectionName, Document document) {
 
         MongoCollection<org.bson.Document> collection = db.getCollection("master");
 
@@ -72,6 +76,16 @@ public class MongoDB implements IMongoDB {
     @Override
     public MongoDatabase getDb() {
         return db;
+    }
+
+    @Override
+    public MongoCollection<org.bson.Document> prepareCollection(String col) {
+
+        MongoCollection<org.bson.Document> c = db.getCollection(col);
+        c.drop();
+        collections.add(col);
+        return db.getCollection(col);
+
     }
 
     @Override
@@ -90,6 +104,9 @@ public class MongoDB implements IMongoDB {
         car.setHeading(document.getString("heading"));
         car.setManufacturer(document.getString("manufacturer"));
         car.setLink(document.getString("link"));
+
+        car.setMileage(document.getDouble("mileage"));
+        car.setHorsepower(document.getInteger("horsepower"));
 
         return car;
     }
@@ -110,6 +127,9 @@ public class MongoDB implements IMongoDB {
         document.put("heading", car.getHeading());
         document.put("manufacturer", car.getManufacturer());
         document.put("link", car.getLink());
+
+        document.put("mileage", car.getMileage());
+        document.put("horsepower", car.getHorsepower());
 
         return document;
     }
