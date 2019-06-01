@@ -46,7 +46,7 @@ public class Aggregator extends Agent {
             // TODO Napraviti i pokrenuti miner-e
             // TODO Da li uposliti i druge centre ?
 
-            
+
 
             // Ceka se na rezultate neko vreme
             ACLMessage selfMsg = new ACLMessage(Performative.CANCEL);
