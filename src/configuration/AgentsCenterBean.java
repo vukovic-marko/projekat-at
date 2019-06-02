@@ -99,18 +99,58 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     // sa parametrom objekta tipa agentscenter koji odgovara agentskom centru koji salje zahtev
 
                     ResteasyClient client = new ResteasyClientBuilder().build();
-                    ResteasyWebTarget target = client.target(masterAddress + "/node");
+                    ResteasyWebTarget target;
+                    Response response;
 
-                    Response response = target.request(MediaType.APPLICATION_JSON)
-                            .post(Entity.entity(agentsCenter, MediaType.APPLICATION_JSON));
+                    Boolean retry = false;
 
-                    List<AgentsCenter> retList = response.readEntity(new GenericType<List<AgentsCenter>>(){});
+                    while(true) {
+                        try {
+                            target = client.target(masterAddress + "/node");
 
-                    if (retList != null) {
-                        registeredCenters = new HashSet<>(retList);
+                            response = target.request(MediaType.APPLICATION_JSON)
+                                    .post(Entity.entity(agentsCenter, MediaType.APPLICATION_JSON));
+
+                            if (response.getStatus() == 400) {
+                                throw new Exception("AgentsCenter with the same alias already registered!");
+                            }
+
+                            List<AgentsCenter> retList = response.readEntity(new GenericType<List<AgentsCenter>>() {
+                            });
+
+                            if (retList != null) {
+                                registeredCenters = new HashSet<>(retList);
+                            }
+
+                            response.close();
+
+                            break;
+                        } catch (Exception e) {
+
+                            if (retry) {
+                                if (registeredCenters != null && registeredCenters.size() > 0) {
+                                    for (AgentsCenter center : registeredCenters) {
+                                        target = client.target(center.getAddress() + "/node/" + agentsCenter.getAlias());
+                                        response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress())
+                                                .delete();
+                                        response.close();
+                                    }
+                                }
+
+                                System.err.println("Unsuccessful registration on 2nd try, caused by: ");
+                                //throw e;
+                                e.printStackTrace();
+                                //throw new EJBException();
+                                destroy();
+                                return;
+                            }
+
+                            System.err.println("Unsuccessful registration, retrying...");
+
+                            retry = true;
+                        }
+
                     }
-
-                    response.close();
 
                     System.out.println("Established connection with master node at " + masterAddress);
                     ws.sendMessage("Established connection with master node at " + masterAddress);
@@ -171,7 +211,6 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
     @PreDestroy
     public void onDestroy() {
-
     }
 
     public void sendAgentsCenters(AgentsCenter center, List<AgentsCenter> receivers) {
@@ -418,6 +457,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
         List<AgentsCenter> toRemove = new ArrayList<>();
 
+        if (registeredCenters != null && registeredCenters.size() > 0)
         for (AgentsCenter center : registeredCenters) {
             int i = 0;
             while(true) {
@@ -513,6 +553,22 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         }
 
         return null;
+    }
+
+    // radi blokiranja heartbeat() funkcije
+    public void destroy() {
+
+        agentsCenter = null;
+        hostTypes = null;
+        hostRunningAgents = null;
+
+        masterNode = null;
+        mastersAddress = null;
+
+        registeredCenters = null;
+
+        clusterTypesMap = null;
+        runningAgents = null;
     }
 
     //    /**

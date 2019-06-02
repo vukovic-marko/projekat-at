@@ -43,6 +43,14 @@ public class AgentsCenterController {
         if (center.isMasterNode()) {
             List<AgentsCenter> nodes1 = new ArrayList<>(center.getRegisteredCenters());
 
+            for (AgentsCenter node : nodes1) {
+                if (node.getAlias().equals(agentsCenter.getAlias())) {
+                    System.out.println("AgentsCenter with the same name already registered!!");
+
+                    return Response.status(Response.Status.BAD_REQUEST).build();
+                }
+            }
+
             // Dodati sam master node
             nodes1.add(center.getAgentsCenter());
 
