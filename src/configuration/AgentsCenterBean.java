@@ -98,7 +98,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     //
                     // sa parametrom objekta tipa agentscenter koji odgovara agentskom centru koji salje zahtev
 
-                    ResteasyClient client = new ResteasyClientBuilder().build();
+                    ResteasyClient client = new ResteasyClientBuilder().socketTimeout(5, TimeUnit.SECONDS).build();
                     ResteasyWebTarget target;
                     Response response;
 
@@ -128,14 +128,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                         } catch (Exception e) {
 
                             if (retry) {
-                                if (registeredCenters != null && registeredCenters.size() > 0) {
-                                    for (AgentsCenter center : registeredCenters) {
-                                        target = client.target(center.getAddress() + "/node/" + agentsCenter.getAlias());
-                                        response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress())
-                                                .delete();
-                                        response.close();
-                                    }
-                                }
+                                removeSelfFromOtherAgents();
 
                                 System.err.println("Unsuccessful registration on 2nd try, caused by: ");
                                 //throw e;
@@ -164,20 +157,40 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     //      kljuc       - string koji sadrzi alias@address
                     //      vrednost    - lista podrzanih tipova agenata
 
-                    target = client.target(masterAddress + "/agents/classes");
+                    while (true) {
+                        try {
+                            target = client.target(masterAddress + "/agents/classes");
 
-                    Map<String, List<AgentType>> temp = new HashMap<>();
-                    temp.put(alias + "@" + nodeAddress, getHostTypes());
+                            Map<String, List<AgentType>> temp = new HashMap<>();
+                            temp.put(alias + "@" + nodeAddress, getHostTypes());
 
-                    response = target.request(MediaType.APPLICATION_JSON)
-                            .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
+                            response = target.request(MediaType.APPLICATION_JSON)
+                                    .post(Entity.entity(temp, MediaType.APPLICATION_JSON));
 
-                    System.out.println("Host agent types sent");
-                    ws.sendMessage("Host agent types sent");
+                            System.out.println("Host agent types sent");
+                            ws.sendMessage("Host agent types sent");
 
-                    clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>(){});
+                            clusterTypesMap = response.readEntity(new GenericType<Map<String, List<AgentType>>>() {
+                            });
 
-                    response.close();
+                            response.close();
+                            break;
+                        } catch (Exception e) {
+
+                            if (retry) {
+                                removeSelfFromOtherAgents();
+
+                                System.err.println("Did not receive supported agent types in cluster on 2nd try, caused by: ");
+                                e.printStackTrace();
+                                destroy();
+                                return;
+                            }
+
+                            System.err.println("Did not receive supported agent types in cluster, retrying...");
+
+                            retry = true;
+                        }
+                    }
 
                     System.out.println("Received nodes list and agent types from master node");
                     ws.sendMessage("Received nodes list and agent types from master node");
@@ -186,15 +199,34 @@ public class AgentsCenterBean implements IAgentsCenterBean {
                     //
                     // master/agents/running
 
-                    target = client.target(masterAddress + "/agents/running");
+                    while(true) {
+                        try {
+                            target = client.target(masterAddress + "/agents/running");
 
-                    response = target.request(MediaType.APPLICATION_JSON).get();
+                            response = target.request(MediaType.APPLICATION_JSON).get();
 
-                    runningAgents = response.readEntity(new GenericType<List<AID>>() {});
+                            runningAgents = response.readEntity(new GenericType<List<AID>>() {});
 
-                    response.close();
+                            response.close();
 
-                    client.close();
+                            client.close();
+                            break;
+                        } catch (Exception e) {
+
+                            if (retry) {
+                                removeSelfFromOtherAgents();
+
+                                System.err.println("Did not receive running agents in cluster on 2nd try, caused by: ");
+                                e.printStackTrace();
+                                destroy();
+                                return;
+                            }
+
+                            System.err.println("Did not receive running agents in cluster, retrying...");
+
+                            retry = true;
+                        }
+                    }
 
                     System.out.println("Received running agents list from master node");
                     ws.sendMessage("Received running agents list from master node");
@@ -556,7 +588,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     }
 
     // radi blokiranja heartbeat() funkcije
-    public void destroy() {
+    private void destroy() {
 
         agentsCenter = null;
         hostTypes = null;
@@ -569,6 +601,20 @@ public class AgentsCenterBean implements IAgentsCenterBean {
 
         clusterTypesMap = null;
         runningAgents = null;
+    }
+
+    private void removeSelfFromOtherAgents() {
+        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyWebTarget target;
+        Response response;
+        if (registeredCenters != null && registeredCenters.size() > 0) {
+            for (AgentsCenter center : registeredCenters) {
+                target = client.target(center.getAddress() + "/node/" + agentsCenter.getAlias());
+                response = target.request(MediaType.APPLICATION_JSON).header("sender", agentsCenter.getAddress())
+                        .delete();
+                response.close();
+            }
+        }
     }
 
     //    /**
