@@ -165,6 +165,8 @@ public class MojAutoCrawler extends CrawlerAgent {
                         car.setColor(color);
                         car.setHeading(heading);
 
+                        //TODO mileage, horsepower
+
                         cars.put(id, car);
                     }
                 }

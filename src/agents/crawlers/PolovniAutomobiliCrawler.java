@@ -47,7 +47,12 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
         //MongoCollection<org.bson.Document> coll = db.getCollection("polovni-automobili");
 
-        MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection("polovni-automobili.crw");
+        if (message.getContent()==null || message.getContent().equals("")) {
+            ws.sendMessage("Please provide content (which will be collection name)");
+            return;
+        }
+
+        MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection(message.getContent() + ".crw");
 
         cars.put("1", new Car());
 
@@ -216,9 +221,9 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
                     if (id != null && !id.equals("") && !cars.containsKey(id)) {
                         Car car = new Car();
+
                         car.setId(id);
                         car.setModel(model);
-                        car.setManufacturer(manufacturer);
                         car.setHeading(heading);
                         car.setYear(yearsOld);
                         car.setNumberOfSeats(numberOfSeats);
@@ -230,6 +235,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         car.setLink(url);
                         car.setHorsepower(power);
                         car.setMileage(mileage);
+
                         cars.put(id, car);
 //                      System.out.println(cars.size());
                     }
