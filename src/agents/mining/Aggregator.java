@@ -3,6 +3,7 @@ package agents.mining;
 import com.mongodb.client.MongoIterable;
 import model.*;
 import model.dto.AggregatorMessage;
+import model.dto.FilterDTO;
 import model.dto.ResultsDTO;
 import mongodb.IMongoDB;
 import websocket.MessageType;
@@ -75,7 +76,7 @@ public class Aggregator extends Agent {
 
             currentClientSession = aMsg.getWsSession();
 
-            hireMiners(message.getContentObj());
+            hireMiners(aMsg.getFilter());
 
             // Proveriti ima li agregatora na drugim centrima
             List<AID> agents = getAgents("Aggregator");
@@ -118,7 +119,7 @@ public class Aggregator extends Agent {
 
             results = Collections.synchronizedSet(new HashSet<>());
 
-            hireMiners(message.getContentObj());
+            hireMiners((FilterDTO) message.getContentObj());
 
             // Ceka se na rezultate neko vreme (krace nego agregator na hostu)
 
@@ -179,7 +180,7 @@ public class Aggregator extends Agent {
         aggregating = false;
     }
 
-    private void hireMiners(Object contentObj) {
+    private void hireMiners(FilterDTO contentObj) {
 
         String dbName = center.getDBName();
 
@@ -196,7 +197,7 @@ public class Aggregator extends Agent {
 
     }
 
-    private void hireMiner(String col, Object contentObj) {
+    private void hireMiner(String col, FilterDTO contentObj) {
 
         ACLMessage msg = new ACLMessage(Performative.REQUEST);
         msg.setSender(aid);
@@ -213,6 +214,7 @@ public class Aggregator extends Agent {
         msg.addReceiver(miner.getAid());
         msg.setReplyTo(aid);
         msg.setContent(col);
+        msg.setContentObj(contentObj);
 
         messenger.sendMessage(msg);
 

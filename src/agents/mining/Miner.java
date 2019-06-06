@@ -63,6 +63,8 @@ public class Miner extends Agent {
                     cars.add(mongoDB.documentToCar(document));
                 }
 
+
+
             }
 
             ACLMessage msg = new ACLMessage(Performative.INFORM);
