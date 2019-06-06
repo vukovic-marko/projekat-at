@@ -74,7 +74,7 @@
                     <input v-model="filterDTO.seats" type="number" class="form-control" id="brojSedista" placeholder="Broj sedišta" min="1">
                 </div>
                 <div class="form-group col-md-4">
-                    <input v-model="filterDTO.doors" type="number" class="form-control" id="brojVrata" placeholder="Broj vrata" min="1">
+                    <input v-model="filterDTO.doors" type="text" class="form-control" id="brojVrata" placeholder="Broj vrata">
                 </div>
                 <div class="form-group col-md-4">
                     <input v-model="filterDTO.color" type="text" class="form-control" id="bojaAutomobila" placeholder="Boja">
@@ -120,7 +120,19 @@ export default {
                 })
                 .finally( this.btnEnabled = true )*/
 
-            this.$emit('sendWsMsg', this.filterDTO)
+            let empty = true
+
+            for (let key in this.filterDTO) {
+                if (this.filterDTO[key] != null && this.filterDTO[key] != "") {
+                    empty = false
+                    break
+                }
+            }
+
+            if (empty)
+                this.$emit('sendWsMsg', null)
+            else
+                this.$emit('sendWsMsg', this.filterDTO)
 
         },
         enableButton() {
