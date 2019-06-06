@@ -48,15 +48,15 @@ public class RestClient implements IRestClient {
 
         Response response = target.request().put(null);
 
-        AgentI agent = null;
+//        AgentI agent = null;
+//
+//        try {
+//            agent = response.readEntity(AgentI.class);
+//        } catch (ProcessingException e) {
+//            e.printStackTrace();
+//        }
 
-        try {
-            agent = response.readEntity(AgentI.class);
-        } catch (ProcessingException e) {
-            e.printStackTrace();
-        }
-
-        retVal = Response.status(response.getStatus()).entity(agent).build();
+        retVal = Response.status(response.getStatus()).entity(null).build();
 
         response.close();
         client.close();
