@@ -44,7 +44,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                 return;
             }
 
-            ws.sendMessage("started crawling on polovniautomobili.com");
+            broadcastInfo("Started crawling on polovniautomobili.com");
             visitPage("https://www.polovniautomobili.com/", 0);
 
             MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection(message.getContent() + ".crw");
@@ -57,8 +57,8 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                 }
             });
 
-            ws.sendMessage("finished crawling");
-            ws.sendMessage("found " + cars.size() + " cars on www.polovniautomobili.com!");
+            broadcastInfo("Finished crawling");
+            broadcastInfo("Found " + cars.size() + " cars on www.polovniautomobili.com!");
         }
 
     }

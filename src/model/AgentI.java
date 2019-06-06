@@ -12,6 +12,8 @@ public interface AgentI extends Serializable {
 
     void init(AID aid, Map<String, String> args);
 
+    boolean isBusy();
+
     @Remove
     void stop();
 

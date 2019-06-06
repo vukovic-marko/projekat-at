@@ -663,20 +663,26 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         AID receiver = null;
         if (agents==null || agents.size()==0) {
             // Napravi novog agregatora
-            AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED");
+            AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED_0");
             receiver = aggregator.getAid();
         } else {
             // Proveri da li je agregator na hostu
+            // i da li je slobodan
             for (AID aid : agents) {
                 if (aid.getHost().equals(agentsCenter)) {
-                    receiver = aid;
-                    break;
+
+                    AgentI ag = hostRunningAgents.get(aid);
+
+                    if (!ag.isBusy()) {
+                        receiver = aid;
+                        break;
+                    }
                 }
             }
 
             if (receiver==null) {
                 // Napravi novog agregatora
-                AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED");
+                AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED_" + agents.size());
                 receiver = aggregator.getAid();
             }
 

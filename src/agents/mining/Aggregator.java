@@ -37,8 +37,10 @@ public class Aggregator extends Agent {
     private int hiredMiners;
     private int minersResponded;
 
-    private int hiredAggregators;
-    private int aggregatorsResponded;
+    private Integer hiredAggregators;
+    private Integer aggregatorsResponded;
+
+    private AID toReply;
 
     @Override
     protected void initArgs(Map<String, String> args) {
@@ -53,21 +55,9 @@ public class Aggregator extends Agent {
 
         if (message.getPerformative() == Performative.REQUEST) {
 
-            if (aggregating) {
-                broadcastInfo("Busy");
-            }
+            initAggregation();
 
-            aggregating = true;
-
-            hiredMiners = 0;
-            minersResponded = 0;
-
-            hiredAggregators = 0;
-            aggregatorsResponded = 0;
-
-            broadcastInfo("Starting aggregation");
-
-            results = Collections.synchronizedSet(new HashSet<>());
+            toReply = null;
 
             // Ne moze jer mozemo imati kolekcije iz prethodnih pokretanja servera
             //Set<String> collections = mongoDB.getCollections();
@@ -86,6 +76,7 @@ public class Aggregator extends Agent {
                     AgentsCenter host = aid.getHost();
                     if (!host.equals(this.aid.getHost()) && !receivers.containsKey(host)) {
                         receivers.put(host, aid);
+                        hiredAggregators++;
                         break;
                     }
                 }
@@ -107,18 +98,11 @@ public class Aggregator extends Agent {
 
         } else if (message.getPerformative() == Performative.PROXY) {
 
+            initAggregation();
+
+            toReply = message.getSender();
+
             // Obavestava samo lokalne miner-e
-
-            if (aggregating) {
-                broadcastInfo("Busy");
-            }
-
-            aggregating = true;
-
-            broadcastInfo("Starting aggregation");
-
-            results = Collections.synchronizedSet(new HashSet<>());
-
             hireMiners((FilterDTO) message.getContentObj());
 
             // Ceka se na rezultate neko vreme (krace nego agregator na hostu)
@@ -142,9 +126,14 @@ public class Aggregator extends Agent {
                 broadcastInfo("Results not delivered");
             }
 
-            center.stopHostAgent(message.getSender());
+            if (message.getSender().getType().getName().equals("Miner")) {
+                center.stopHostAgent(message.getSender());
+                ++minersResponded;
+            } else {
+                ++aggregatorsResponded;
+            }
 
-            if (++minersResponded==hiredMiners && aggregatorsResponded==hiredAggregators) {
+            if (minersResponded==hiredMiners && aggregatorsResponded==hiredAggregators) {
                 finishAggregation();
             }
 
@@ -155,7 +144,9 @@ public class Aggregator extends Agent {
 
         } else if (message.getPerformative() == Performative.REQUEST_WHENEVER) {
 
-            Integer targetPage = Integer.parseInt(message.getContent());
+            // Abondoned
+
+            /*Integer targetPage = Integer.parseInt(message.getContent());
 
             broadcastInfo("Got request for data at page " + targetPage);
 
@@ -163,19 +154,64 @@ public class Aggregator extends Agent {
 
             WSMessage wsMessage = new WSMessage("Results delivered", MessageType.RESULTS);
             wsMessage.setPayload(new ResultsDTO(new ArrayList<>(results), targetPage, pageSize));
-            ws.sendWSMessage(wsMessage);
+            ws.sendWSMessage(wsMessage);*/
 
         }
 
     }
 
+    private void initAggregation() {
+
+        if (aggregating) {
+            broadcastInfo("Busy");
+        }
+
+        aggregating = true;
+
+        hiredMiners = 0;
+        minersResponded = 0;
+
+        hiredAggregators = 0;
+        aggregatorsResponded = 0;
+
+        broadcastInfo("Starting aggregation");
+
+        results = Collections.synchronizedSet(new HashSet<>());
+    }
+
     private void finishAggregation() {
+
+        if (toReply==null) {
+            finishAggregationHost();
+        } else {
+            finishAggregationRemote();
+        }
+
+        if (aid.getName().startsWith("GENERATED")) {
+            center.stopHostAgent(aid);
+        }
+    }
+
+    private void finishAggregationHost() {
         broadcastInfo("Aggregation finished");
 
         WSMessage wsMessage = new WSMessage("Results gathered and delivered", MessageType.RESULTS);
         //wsMessage.setPayload(new ResultsDTO(new ArrayList<>(results), pageSize));
         wsMessage.setPayload(new ResultsDTO(new ArrayList<>(results), pageSize, ""));
         ws.sendWSMessage(wsMessage, currentClientSession);
+
+        aggregating = false;
+    }
+
+    private void finishAggregationRemote() {
+        broadcastInfo("Remote aggregation finished");
+
+        ACLMessage msg = new ACLMessage();
+        msg.setSender(aid);
+        msg.addReceiver(toReply);
+        msg.setContentObj(results);
+
+        messenger.sendMessage(msg);
 
         aggregating = false;
     }
@@ -206,7 +242,7 @@ public class Aggregator extends Agent {
 
         AgentI miner = null;
         try {
-            miner = center.runAgent(agentType, "GENERATED_" + col);
+            miner = center.runAgent(agentType, aid.getName() + "_" + col);
         } catch (NamingException e) {
             e.printStackTrace();
         }
@@ -218,6 +254,11 @@ public class Aggregator extends Agent {
 
         messenger.sendMessage(msg);
 
+    }
+
+    @Override
+    public boolean isBusy() {
+        return aggregating;
     }
 
 }

@@ -102,6 +102,11 @@ public abstract class Agent implements AgentI {
         }
     }
 
+    @Override
+    public boolean isBusy() {
+        return true;
+    }
+
     protected abstract void onMessage(ACLMessage message);
 
 }

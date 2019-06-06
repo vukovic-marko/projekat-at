@@ -13,9 +13,10 @@
             :items="cars"
             :per-page="perPage"
             :current-page="currentPage"
-            :fields="fields">
+            :fields="fields"
+            :tbody-tr-class="rowClass">
               <template slot="link" slot-scope="data">
-                <a :href=data.value>link</a>
+                <a :href=data.value><font-awesome-icon icon="link" /></a>
               </template>
               <template slot="price" slot-scope="data">
                 <span v-if="data.value!=0">{{data.value}}</span>
@@ -104,6 +105,11 @@ export default {
       this.currentPage = 1
       this.cars = payload.resultsPage;
 
+    },
+    rowClass(item, type) {
+      if (!item) return
+      if (item.mileage === 0) return 'table-info'
+      return 'table-warning'
     }
   }
 }
