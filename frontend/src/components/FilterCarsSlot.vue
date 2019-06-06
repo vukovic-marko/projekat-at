@@ -74,7 +74,12 @@
                     <input v-model="filterDTO.seats" type="number" class="form-control" id="brojSedista" placeholder="Broj sedišta" min="1">
                 </div>
                 <div class="form-group col-md-4">
-                    <input v-model="filterDTO.doors" type="text" class="form-control" id="brojVrata" placeholder="Broj vrata">
+                    <select v-model="filterDTO.doors" class="form-control" id="brojVrata">
+                        <option value="" disabled selected>Broj vrata</option>
+                        <option>2/3</option>
+                        <option>4/5</option>
+                        <option>6/7</option>
+                    </select>
                 </div>
                 <div class="form-group col-md-4">
                     <input v-model="filterDTO.color" type="text" class="form-control" id="bojaAutomobila" placeholder="Boja">
@@ -141,6 +146,7 @@ export default {
     },
     created: function() {
         this.filterDTO.fuel = "";
+        this.filterDTO.doors = "";
     }
 }
 </script>
