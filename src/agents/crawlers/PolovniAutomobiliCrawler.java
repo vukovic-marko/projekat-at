@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection;
 import model.ACLMessage;
 import model.AgentI;
 import model.Car;
+import model.Performative;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,20 +15,17 @@ import javax.ejb.Stateful;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 @Stateful
 @Remote(AgentI.class)
 public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
     private static final Integer MAX_DEPTH = 1;
-    private Map<String, Car> cars;
-    private Set<String> visited;
+    private static final String URL = "https://www.polovniautomobili.com/";
 
     @Override
     protected void initArgs(Map<String, String> args) {
-        // TODO Determine save location
-        initCrawler("https://www.polovniautomobili.com/", "");
+        initCrawler(URL);
     }
 
     @Override
@@ -38,34 +36,30 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
         //System.out.println("I crawl on polovniautomobili.com!");
         broadcastInfo("Received message: " + message);
-        ws.sendMessage("started crawling on polovniautomobili.com");
 
-        visitPage("https://www.polovniautomobili.com/", 0);
+        if (message.getPerformative()== Performative.REQUEST) {
 
-        //MongoDatabase db = mongoDB.getDb();
-        //db.getCollection("polovni-automobili").drop(); // TODO change collection name, use initArgs[35]
-
-        //MongoCollection<org.bson.Document> coll = db.getCollection("polovni-automobili");
-
-        if (message.getContent()==null || message.getContent().equals("")) {
-            ws.sendMessage("Please provide content (which will be collection name)");
-            return;
-        }
-
-        MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection(message.getContent() + ".crw");
-
-        cars.put("1", new Car());
-
-        cars.forEach((k,v) -> {
-            try {
-                collection.insertOne(mongoDB.carToDocument(v));
-            } catch (Exception e) {
-                // just continue
+            if (message.getContent()==null || message.getContent().equals("")) {
+                ws.sendMessage("Please provide content (which will be collection name)");
+                return;
             }
-        });
 
-        ws.sendMessage("finished crawling");
-        ws.sendMessage("found " + cars.size() + " cars on www.polovniautomobili.com!");
+            ws.sendMessage("started crawling on polovniautomobili.com");
+            visitPage("https://www.polovniautomobili.com/", 0);
+
+            MongoCollection<org.bson.Document> collection = mongoDB.prepareCollection(message.getContent() + ".crw");
+
+            cars.forEach((k,v) -> {
+                try {
+                    collection.insertOne(mongoDB.carToDocument(v));
+                } catch (Exception e) {
+                    // just continue
+                }
+            });
+
+            ws.sendMessage("finished crawling");
+            ws.sendMessage("found " + cars.size() + " cars on www.polovniautomobili.com!");
+        }
 
     }
 
@@ -224,6 +218,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
                         car.setId(id);
                         car.setModel(model);
+                        car.setManufacturer(manufacturer);
                         car.setHeading(heading);
                         car.setYear(yearsOld);
                         car.setNumberOfSeats(numberOfSeats);
@@ -237,7 +232,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
                         car.setMileage(mileage);
 
                         cars.put(id, car);
-//                      System.out.println(cars.size());
+                        System.out.println(cars.size());
                     }
 
                 }

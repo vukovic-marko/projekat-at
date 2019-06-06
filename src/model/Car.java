@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Car implements Serializable {
 
@@ -130,5 +131,28 @@ public class Car implements Serializable {
 
     public void setMileage(Double mileage) {
         this.mileage = mileage;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof Car) {
+            Car car = (Car) obj;
+            if (car.getLink().equals(link)) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, manufacturer, link);
     }
 }

@@ -52,6 +52,9 @@ export default {
     updateTypes() {
       this.$refs.runAgentSlot.updateTypes()
       this.$refs.agentTypesSlot.updateTypes()
+    },
+    updateResults(payload) {
+      
     }
   }
 }

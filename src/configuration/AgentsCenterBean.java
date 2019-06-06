@@ -2,7 +2,9 @@ package configuration;
 
 import agents.test.pingpong.Ping;
 import application.App;
+import messaging.IMessenger;
 import model.*;
+import model.dto.AggregatorMessage;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -42,11 +44,17 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     private Map<String, List<AgentType>> clusterTypesMap;
     private List<AID> runningAgents;
 
+    //private ResultsDTO results;
+    //private Boolean ready;
+
     @EJB
     private ConsoleEndpoint ws;
 
     @EJB
     private IRestClient restClient;
+
+    @EJB
+    private IMessenger messenger;
 
     @PostConstruct
     public void init() {
@@ -587,6 +595,114 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         return null;
     }
 
+    public String getDBName() {
+        try (InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties")) {
+
+            if (input == null) {
+                Properties props = new Properties();
+                props.load(input);
+
+                return props.getProperty("db", "default");
+
+            } else{
+                System.err.println("Nije pronadjena config.properties datoteka!");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /*
+    @Override
+    public ResultsDTO waitResults() {
+
+        ready = false;
+        while (!ready) {
+            try {
+                ready.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return results;
+
+    }
+
+    @Override
+    public void setResults(ResultsDTO results) {
+        this.results = results;
+    }
+
+    @Override
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }*/
+
+    private static final String AGGREGAOR_TYPE = "projekat_at_ear_exploded.web.Aggregator";
+
+    @Override
+    public  void notifyAggregator(AggregatorMessage aMsg) {
+
+        ACLMessage msg = new ACLMessage(Performative.REQUEST);
+
+        msg.setContentObj(aMsg);
+
+        // Pronadji agregatora
+        List<AID> agents = null;
+        try {
+
+            agents = runningAgents.stream().filter(aid -> aid.getType().getName().equals("Aggregator")).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        AID receiver = null;
+        if (agents==null || agents.size()==0) {
+            // Napravi novog agregatora
+            AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED");
+            receiver = aggregator.getAid();
+        } else {
+            // Proveri da li je agregator na hostu
+            for (AID aid : agents) {
+                if (aid.getHost().equals(agentsCenter)) {
+                    receiver = aid;
+                    break;
+                }
+            }
+
+            if (receiver==null) {
+                // Napravi novog agregatora
+                AgentI aggregator = generateAgent(AGGREGAOR_TYPE, "GENERATED");
+                receiver = aggregator.getAid();
+            }
+
+        }
+
+        msg.addReceiver(receiver);
+
+        messenger.sendMessage(msg);
+
+    }
+
+    private AgentI generateAgent(String type, String name) {
+
+        AgentType agentType = new AgentType(AGGREGAOR_TYPE);
+
+        AgentI aggregator = null;
+        try {
+            aggregator = runAgent(agentType, name);
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+
+        return aggregator;
+
+    }
+
     // radi blokiranja heartbeat() funkcije
     private void destroy() {
 
@@ -616,6 +732,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
             }
         }
     }
+
+
 
     //    /**
 //     * Funkcija koja pronalazi agenta zapisanog u notaciji alias@address, i vraca ga kao objekat tipa AgentsCenter.

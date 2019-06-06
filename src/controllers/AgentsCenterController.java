@@ -165,4 +165,18 @@ public class AgentsCenterController {
 
     }
 
+    /*
+    @POST
+    @Path("/filter")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response form(FilterDTO filter) {
+
+        center.notifyAggregator(filter);
+
+        center.waitResults();
+
+        return Response.status(Response.Status.OK).entity(filter).build();
+    }*/
+
 }

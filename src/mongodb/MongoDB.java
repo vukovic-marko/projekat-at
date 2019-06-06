@@ -133,4 +133,8 @@ public class MongoDB implements IMongoDB {
 
         return document;
     }
+
+    public Set<String> getCollections() {
+        return collections;
+    }
 }

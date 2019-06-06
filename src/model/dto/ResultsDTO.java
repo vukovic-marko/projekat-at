@@ -15,6 +15,14 @@ public class ResultsDTO {
 
     }
 
+    public ResultsDTO(List<Car> allResults, int pageSize, String placeholder) {
+        // Vrati prvu stranu
+        this.currentPage = 1;
+        this.resultsPage = allResults;
+        this.totalResults = allResults.size();
+        this.totalPages = (int) Math.ceil(this.totalResults / pageSize);
+    }
+
     public ResultsDTO(List<Car> allResults, int pageSize) {
         // Vrati prvu stranu
         this.currentPage = 1;

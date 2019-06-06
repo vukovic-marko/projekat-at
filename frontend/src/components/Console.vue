@@ -35,6 +35,7 @@ export default {
     .console {
 	    display: flex;
     	flex-direction: column;
+        background-color: aliceblue;
     }
 
     #textarea {

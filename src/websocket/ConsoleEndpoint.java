@@ -2,7 +2,11 @@ package websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import configuration.IAgentsCenterBean;
+import model.dto.AggregatorMessage;
+import model.dto.FilterDTO;
 
+import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -20,6 +24,9 @@ public class ConsoleEndpoint {
     //private Map<String, Session> sessions = new ConcurrentHashMap<>();
     private List<Session> sessions = new ArrayList<>();
 
+    @EJB
+    public IAgentsCenterBean center;
+
     @OnOpen
     public void onOpen(Session session) throws IOException {
         sessions.add(session);
@@ -30,6 +37,17 @@ public class ConsoleEndpoint {
     public void onMessage(Session session, String message) throws IOException {
         // Handle new messages
         System.out.println("Received message via websocket");
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        FilterDTO obj = (FilterDTO) mapper.readValue(message, FilterDTO.class);
+
+        AggregatorMessage aMsg = new AggregatorMessage();
+        aMsg.setFilter(obj);
+        aMsg.setWsSession(session.getId());
+
+        center.notifyAggregator(aMsg);
+
         logger.log(Level.INFO, "Received message via websocket");
         logger.log(Level.INFO, "Message content : " + message);
     }
@@ -67,6 +85,26 @@ public class ConsoleEndpoint {
 
         for (Session s : sessions) {
             s.getAsyncRemote().sendText(jsonMessage);
+        }
+
+    }
+
+    public void sendWSMessage(WSMessage message, String session) {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String jsonMessage = null;
+
+        try {
+            jsonMessage = mapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        for (Session s : sessions) {
+            if (s.getId().equals(session)) {
+                s.getAsyncRemote().sendText(jsonMessage);
+            }
         }
 
     }

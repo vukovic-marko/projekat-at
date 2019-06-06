@@ -11,10 +11,11 @@ import java.util.Map;
 @Remote(AgentI.class)
 public class MobileCrawler extends CrawlerAgent {
 
+    private static final String URL = "https://www.mobile.de/";
+
     @Override
     protected void initArgs(Map<String, String> args) {
-        // TODO Determine save location
-        initCrawler("https://www.mobile.de/", "");
+        initCrawler(URL);
     }
 
     @Override

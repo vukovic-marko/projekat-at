@@ -6,6 +6,7 @@ import model.Car;
 import org.bson.Document;
 
 import javax.ejb.Local;
+import java.util.Set;
 
 @Local
 public interface IMongoDB {
@@ -15,5 +16,6 @@ public interface IMongoDB {
     Document carToDocument(Car car);
     void addDocument(String collectionName, Document document);
     MongoCollection<Document> prepareCollection(String col);
+    Set<String> getCollections();
 
 }

@@ -1,6 +1,10 @@
 package configuration;
 
-import model.*;
+import model.AID;
+import model.AgentI;
+import model.AgentType;
+import model.AgentsCenter;
+import model.dto.AggregatorMessage;
 
 import javax.ejb.Local;
 import javax.ejb.Lock;
@@ -47,4 +51,12 @@ public interface IAgentsCenterBean {
     void broadcastMessage(String wsMessage);
 
     AgentsCenter deleteByAlias(String alias);
+
+    String getDBName();
+
+    void notifyAggregator(AggregatorMessage aMsg);
+
+    //ResultsDTO waitResults();
+    //void setResults(ResultsDTO results);
+    //void setReady(boolean ready);
 }

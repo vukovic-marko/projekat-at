@@ -15,20 +15,17 @@ import javax.ejb.Stateful;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 @Stateful
 @Remote(AgentI.class)
 public class MojAutoCrawler extends CrawlerAgent {
 
-    public static final Integer MAX_DEPTH = 16;
-    private Map<String, Car> cars;
-    private Set<String> visited;
+    private static final Integer MAX_DEPTH = 16;
+    private static final String URL = "https://www.mojauto.rs/";
 
     @Override
     protected void initArgs(Map<String, String> args) {
-        // TODO Determine save location
-        initCrawler("https://www.mojauto.rs/", "");
+        initCrawler(URL);
     }
 
     @Override

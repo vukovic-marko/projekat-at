@@ -25,6 +25,9 @@ export default {
     },
     updateTypes() {
       
+    },
+    updateResults(payload) {
+      
     }
   }
 }
