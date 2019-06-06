@@ -21,7 +21,7 @@ import java.util.Map;
 @Remote(AgentI.class)
 public class MojAutoCrawler extends CrawlerAgent {
 
-    private static final Integer MAX_DEPTH = 1;
+    //private static final Integer MAX_DEPTH = 1;
     private static final String URL = "https://www.mojauto.rs/";
 
     @Override
@@ -38,10 +38,7 @@ public class MojAutoCrawler extends CrawlerAgent {
         broadcastInfo("Received message: " + message);
         if (message.getPerformative()== Performative.REQUEST) {
 
-            if (message.getContent()==null || message.getContent().equals("")) {
-                ws.sendMessage("Please provide content (which will be collection name)");
-                return;
-            }
+            prepareCrawler(message);
 
             System.out.println("started crawling on www.mojauto.rs");
             broadcastInfo("started crawling on www.mojauto.rs");

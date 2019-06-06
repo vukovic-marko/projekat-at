@@ -20,7 +20,6 @@ import java.util.Map;
 @Remote(AgentI.class)
 public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
-    private static final Integer MAX_DEPTH = 1;
     private static final String URL = "https://www.polovniautomobili.com/";
 
     @Override
@@ -39,10 +38,7 @@ public class PolovniAutomobiliCrawler extends CrawlerAgent {
 
         if (message.getPerformative()== Performative.REQUEST) {
 
-            if (message.getContent()==null || message.getContent().equals("")) {
-                ws.sendMessage("Please provide content (which will be collection name)");
-                return;
-            }
+            prepareCrawler(message);
 
             broadcastInfo("Started crawling on polovniautomobili.com");
             visitPage("https://www.polovniautomobili.com/", 0);

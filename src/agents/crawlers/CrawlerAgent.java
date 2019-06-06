@@ -1,5 +1,6 @@
 package agents.crawlers;
 
+import model.ACLMessage;
 import model.Agent;
 import model.AgentI;
 import model.Car;
@@ -18,6 +19,8 @@ import java.util.Set;
 public abstract class CrawlerAgent extends Agent {
 
     private static final String AGGREGAOR_TYPE = "projekat_at_ear_exploded.web.Aggregator";
+
+    protected Integer MAX_DEPTH = 1;
 
     @EJB
     protected IMongoDB mongoDB;
@@ -38,6 +41,22 @@ public abstract class CrawlerAgent extends Agent {
 
         this.location_db = center.getDBName();
 
+    }
+
+    protected void prepareCrawler(ACLMessage message) {
+        if (message.getContent()==null || message.getContent().equals("")) {
+            ws.sendMessage("Please provide content (which will be collection name)");
+            return;
+        }
+
+        String protocol = message.getProtocol();
+        if (protocol != null && !protocol.equals("")) {
+            try {
+                MAX_DEPTH = Integer.parseInt(protocol);
+            } catch (Exception e) {
+                // Nije zadata celobrojna vrednost za protokol
+            }
+        }
     }
 
 }
