@@ -5,6 +5,7 @@ import com.mongodb.client.MongoDatabase;
 import model.ACLMessage;
 import model.AgentI;
 import model.Car;
+import model.Performative;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,7 +21,7 @@ import java.util.Map;
 @Remote(AgentI.class)
 public class MojAutoCrawler extends CrawlerAgent {
 
-    private static final Integer MAX_DEPTH = 16;
+    private static final Integer MAX_DEPTH = 1;
     private static final String URL = "https://www.mojauto.rs/";
 
     @Override
@@ -35,21 +36,34 @@ public class MojAutoCrawler extends CrawlerAgent {
         cars = new HashMap<>();
 
         broadcastInfo("Received message: " + message);
-        System.out.println("started crawling on www.mojauto.rs");
+        if (message.getPerformative()== Performative.REQUEST) {
 
-        visitPage("https://www.mojauto.rs/", 0);
+            if (message.getContent()==null || message.getContent().equals("")) {
+                ws.sendMessage("Please provide content (which will be collection name)");
+                return;
+            }
 
-        MongoDatabase db = mongoDB.getDb();
-        db.getCollection("mojauto").drop();
+            System.out.println("started crawling on www.mojauto.rs");
+            broadcastInfo("started crawling on www.mojauto.rs");
 
-        MongoCollection<org.bson.Document> coll = db.getCollection("mojauto");
+            visitPage("https://www.mojauto.rs/", 0);
 
-        cars.forEach((k,v) -> {
-            coll.insertOne(mongoDB.carToDocument(v));
-        });
+            MongoDatabase db = mongoDB.getDb();
+            db.getCollection("mojauto").drop();
 
-        broadcastInfo("finished crawling");
-        broadcastInfo("found " + cars.size() + " cars on www.mojauto.rs!");
+            MongoCollection<org.bson.Document> coll = mongoDB.prepareCollection(message.getContent() + ".crw");
+
+            cars.forEach((k,v) -> {
+                try {
+                    coll.insertOne(mongoDB.carToDocument(v));
+                } catch (Exception e) {
+                    // just continue
+                }
+            });
+
+            broadcastInfo("finished crawling");
+            broadcastInfo("found " + cars.size() + " cars on www.mojauto.rs!");
+        }
     }
 
     private void visitPage(String url, Integer depth) {
@@ -63,8 +77,8 @@ public class MojAutoCrawler extends CrawlerAgent {
             !url.contains("/polovni-poljoprivredna/") && !url.endsWith(".jpg") &&
             !url.contains("/print_oglas/") && !url.contains("/dodaj/")) {
 
-            if (cars.size() == 250)
-                return;
+                if (cars.size() == 250)
+                    return;
 
             try {
 
@@ -79,6 +93,8 @@ public class MojAutoCrawler extends CrawlerAgent {
                 if (url.startsWith("https://www.mojauto.rs/polovni-automobili/")) {
                     String heading = document.select("h1").first().ownText();
                     Integer yearsOld;
+                    Integer cubicCapacity;
+                    Double mileage;
 
                     Element dataSelection = document.select("div.sidePanel:nth-child(2) > ul:nth-child(2) > li:nth-child(2) > span:nth-child(1)").first();
 
@@ -87,6 +103,21 @@ public class MojAutoCrawler extends CrawlerAgent {
                     } catch (NumberFormatException e) {
                         yearsOld = 0;
                     }
+
+                    dataSelection = document.select("div.sidePanel:nth-child(2) > ul:nth-child(2) > li:nth-child(2) > span:nth-child(2)").first();
+                    try {
+                        cubicCapacity = Integer.valueOf(dataSelection.ownText().split(" ")[0]);
+                    } catch (NumberFormatException e) {
+                        cubicCapacity = 0;
+                    }
+
+                    dataSelection = document.select("div.sidePanel:nth-child(2) > ul:nth-child(2) > li:nth-child(3) > span:nth-child(1)").first();
+                    try {
+                        mileage = Double.valueOf(dataSelection.ownText().replaceFirst("\\.","").split(" ")[0]);
+                    } catch (NumberFormatException e) {
+                        mileage = 0.0;
+                    }
+
 
                     String fuel = "";
 
@@ -109,7 +140,7 @@ public class MojAutoCrawler extends CrawlerAgent {
                     Integer numberOfSeats = 0;
                     String doorCount = "";
                     String color = "";
-                    Integer cubicCapacity = 0;
+                    Integer horsepower = 0;
 
                     Elements elements = document.select("div.singleBox:nth-child(8) li span");
 
@@ -137,9 +168,9 @@ public class MojAutoCrawler extends CrawlerAgent {
                         if (e.ownText().equals("Snaga")) {
                             String cc = e.parent().select("strong").first().ownText().split(" ")[0];
                             try {
-                                cubicCapacity = Integer.valueOf(cc);
+                                horsepower = Integer.valueOf(cc);
                             } catch (NumberFormatException ex) {
-                                cubicCapacity = 0;
+                                horsepower = 0;
                             }
                             continue;
                         }
@@ -155,14 +186,14 @@ public class MojAutoCrawler extends CrawlerAgent {
                         car.setModel(model);
                         car.setYear(yearsOld);
                         car.setPrice(price);
-                        car.setCubicCapacity(cubicCapacity);
+                        car.setHorsepower(horsepower);
                         car.setFuel(fuel);
                         car.setNumberOfSeats(numberOfSeats);
                         car.setDoorCount(doorCount);
                         car.setColor(color);
                         car.setHeading(heading);
-
-                        //TODO mileage, horsepower
+                        car.setCubicCapacity(cubicCapacity);
+                        car.setMileage(mileage);
 
                         cars.put(id, car);
                     }

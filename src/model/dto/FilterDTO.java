@@ -7,25 +7,25 @@ public class FilterDTO implements Serializable {
     private String maker;
     private String model;
 
-    private double priceFrom;
-    private double priceTo;
+    private Double priceFrom;
+    private Double priceTo;
 
     private String fuel;
 
-    private double ccFrom;
-    private double ccTo;
+    private Integer ccFrom;
+    private Integer ccTo;
 
-    private double yearFrom;
-    private double yearTo;
+    private Integer yearFrom;
+    private Integer yearTo;
 
-    private double powerFrom;
-    private double powerTo;
+    private Integer powerFrom;
+    private Integer powerTo;
 
-    private double mileageFrom;
-    private double mileageTo;
+    private Double mileageFrom;
+    private Double mileageTo;
 
-    private int seats;
-    private int doors;
+    private Integer seats;
+    private String doors;
     private String color;
 
     private FilterDTO() {
@@ -49,19 +49,19 @@ public class FilterDTO implements Serializable {
         this.model = model;
     }
 
-    public double getPriceFrom() {
+    public Double getPriceFrom() {
         return priceFrom;
     }
 
-    public void setPriceFrom(double priceFrom) {
+    public void setPriceFrom(Double priceFrom) {
         this.priceFrom = priceFrom;
     }
 
-    public double getPriceTo() {
+    public Double getPriceTo() {
         return priceTo;
     }
 
-    public void setPriceTo(double priceTo) {
+    public void setPriceTo(Double priceTo) {
         this.priceTo = priceTo;
     }
 
@@ -73,83 +73,83 @@ public class FilterDTO implements Serializable {
         this.fuel = fuel;
     }
 
-    public double getCcFrom() {
+    public Integer getCcFrom() {
         return ccFrom;
     }
 
-    public void setCcFrom(double ccFrom) {
+    public void setCcFrom(Integer ccFrom) {
         this.ccFrom = ccFrom;
     }
 
-    public double getCcTo() {
+    public Integer getCcTo() {
         return ccTo;
     }
 
-    public void setCcTo(double ccTo) {
+    public void setCcTo(Integer ccTo) {
         this.ccTo = ccTo;
     }
 
-    public double getYearFrom() {
+    public Integer getYearFrom() {
         return yearFrom;
     }
 
-    public void setYearFrom(double yearFrom) {
+    public void setYearFrom(Integer yearFrom) {
         this.yearFrom = yearFrom;
     }
 
-    public double getYearTo() {
+    public Integer getYearTo() {
         return yearTo;
     }
 
-    public void setYearTo(double yearTo) {
+    public void setYearTo(Integer yearTo) {
         this.yearTo = yearTo;
     }
 
-    public double getPowerFrom() {
+    public Integer getPowerFrom() {
         return powerFrom;
     }
 
-    public void setPowerFrom(double powerFrom) {
+    public void setPowerFrom(Integer powerFrom) {
         this.powerFrom = powerFrom;
     }
 
-    public double getPowerTo() {
+    public Integer getPowerTo() {
         return powerTo;
     }
 
-    public void setPowerTo(double powerTo) {
+    public void setPowerTo(Integer powerTo) {
         this.powerTo = powerTo;
     }
 
-    public double getMileageFrom() {
+    public Double getMileageFrom() {
         return mileageFrom;
     }
 
-    public void setMileageFrom(double mileageFrom) {
+    public void setMileageFrom(Double mileageFrom) {
         this.mileageFrom = mileageFrom;
     }
 
-    public double getMileageTo() {
+    public Double getMileageTo() {
         return mileageTo;
     }
 
-    public void setMileageTo(double mileageTo) {
+    public void setMileageTo(Double mileageTo) {
         this.mileageTo = mileageTo;
     }
 
-    public int getSeats() {
+    public Integer getSeats() {
         return seats;
     }
 
-    public void setSeats(int seats) {
+    public void setSeats(Integer seats) {
         this.seats = seats;
     }
 
-    public int getDoors() {
+    public String getDoors() {
         return doors;
     }
 
-    public void setDoors(int doors) {
+    public void setDoors(String doors) {
         this.doors = doors;
     }
 
