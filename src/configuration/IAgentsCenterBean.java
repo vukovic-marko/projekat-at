@@ -52,7 +52,7 @@ public interface IAgentsCenterBean {
 
     AgentsCenter deleteByAlias(String alias);
 
-    String getDBName();
+    //String getDBName();
 
     void notifyAggregator(AggregatorMessage aMsg);
 

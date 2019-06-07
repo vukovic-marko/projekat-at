@@ -10,6 +10,7 @@ import org.bson.Document;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import java.util.Properties;
 import java.util.Set;
 
 @Singleton
+@Startup
 public class MongoDB implements IMongoDB {
 
     private MongoClient client;

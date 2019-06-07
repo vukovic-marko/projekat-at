@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Singleton
 @Startup
 @Lock(LockType.READ)
-@AccessTimeout(value = 60, unit = TimeUnit.SECONDS)
+//@AccessTimeout(value = 60, unit = TimeUnit.SECONDS)
 public class AgentsCenterBean implements IAgentsCenterBean {
 
     private AgentsCenter agentsCenter;
@@ -57,7 +57,8 @@ public class AgentsCenterBean implements IAgentsCenterBean {
     private IMessenger messenger;
 
     @PostConstruct
-    public void init() {
+    private void init() {
+
         try (InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties")) {
 
             Properties prop = new Properties();
@@ -595,7 +596,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         return null;
     }
 
-    public String getDBName() {
+    /*public String getDBName() {
         try (InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties")) {
 
             if (input == null) {
@@ -612,7 +613,7 @@ public class AgentsCenterBean implements IAgentsCenterBean {
         }
 
         return null;
-    }
+    }*/
 
     /*
     @Override

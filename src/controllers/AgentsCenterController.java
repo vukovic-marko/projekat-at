@@ -39,6 +39,7 @@ public class AgentsCenterController {
     @POST
     @Path("/node")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response register(AgentsCenter agentsCenter) {
         if (center.isMasterNode()) {
             List<AgentsCenter> nodes1 = new ArrayList<>(center.getRegisteredCenters());
@@ -47,7 +48,7 @@ public class AgentsCenterController {
                 if (node.getAlias().equals(agentsCenter.getAlias())) {
                     System.out.println("AgentsCenter with the same name already registered!!");
 
-                    return Response.status(Response.Status.BAD_REQUEST).build();
+                    return Response.status(Response.Status.BAD_REQUEST).entity(null).build();
                 }
             }
 
@@ -61,7 +62,7 @@ public class AgentsCenterController {
                         + "@" + agentsCenter.getAddress() + "' joined the cluster");
             }
 
-            return Response.ok(nodes1).build();
+            return Response.status(Response.Status.OK).entity(nodes1).build();
 
         } else {
             center.getRegisteredCenters().add(agentsCenter);
@@ -69,7 +70,7 @@ public class AgentsCenterController {
             ws.sendMessage("Added center '" + agentsCenter.getAlias() + "@" +
                     agentsCenter.getAddress() + "'");
 
-            return Response.ok().build();
+            return Response.status(Response.Status.OK).entity(null).build();
 
         }
 

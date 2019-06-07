@@ -193,6 +193,7 @@ public class MojAutoCrawler extends CrawlerAgent {
                         car.setMileage(mileage);
 
                         cars.put(id, car);
+                        System.out.println(cars.size());
                     }
                 }
 

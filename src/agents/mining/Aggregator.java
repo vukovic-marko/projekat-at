@@ -117,10 +117,10 @@ public class Aggregator extends Agent {
 
             Object obj = message.getContentObj();
 
-            Set<Car> receivedResults = null;
+            Collection<Car> receivedResults = null;
             if (obj != null) {
                 broadcastInfo("Received results");
-                receivedResults = (Set<Car>) obj;
+                receivedResults = (Collection<Car>) obj;
                 results.addAll(receivedResults);
             } else {
                 broadcastInfo("Results not delivered");
@@ -206,10 +206,10 @@ public class Aggregator extends Agent {
     private void finishAggregationRemote() {
         broadcastInfo("Remote aggregation finished");
 
-        ACLMessage msg = new ACLMessage();
+        ACLMessage msg = new ACLMessage(Performative.INFORM);
         msg.setSender(aid);
         msg.addReceiver(toReply);
-        msg.setContentObj(results);
+        msg.setContentObj(new HashSet<>(results));
 
         messenger.sendMessage(msg);
 
@@ -218,7 +218,7 @@ public class Aggregator extends Agent {
 
     private void hireMiners(FilterDTO contentObj) {
 
-        String dbName = center.getDBName();
+        //String dbName = center.getDBName();
 
         MongoIterable<String> collectionNames = mongoDB.getDb().listCollectionNames();
 

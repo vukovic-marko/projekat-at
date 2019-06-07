@@ -26,7 +26,7 @@ public abstract class CrawlerAgent extends Agent {
     protected IMongoDB mongoDB;
 
     protected URL site;
-    protected String location_db;
+    //protected String location_db;
 
     protected Map<String, Car> cars;
     protected Set<String> visited;
@@ -39,7 +39,7 @@ public abstract class CrawlerAgent extends Agent {
             e.printStackTrace();
         }
 
-        this.location_db = center.getDBName();
+        //this.location_db = center.getDBName();
 
     }
 
