@@ -77,7 +77,7 @@ public class Aggregator extends Agent {
                     if (!host.equals(this.aid.getHost()) && !receivers.containsKey(host)) {
                         receivers.put(host, aid);
                         hiredAggregators++;
-                        break;
+                        //break;
                     }
                 }
             }
